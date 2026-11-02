@@ -1,0 +1,562 @@
+// popup.js - Controller Ekstensi Web Timer (Anti-Slop Craftsmanship)
+
+let currentDomain = "";
+let countdownInterval = null;
+let otherTimersInterval = null;
+
+// Helper: Format tanggal hari ini (YYYY-MM-DD)
+function getTodayKey() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+// Format menit dan detik yang konsisten
+function formatMinutesSeconds(totalSeconds) {
+  const mins = Math.floor(totalSeconds / 60);
+  const secs = totalSeconds % 60;
+  if (mins === 0) return `${secs}d`;
+  if (secs === 0) return `${mins}m`;
+  return `${mins}m ${secs}d`;
+}
+
+// -------------------------------------------------------------
+// DOM Elements
+// -------------------------------------------------------------
+const themeToggleBtn = document.getElementById("themeToggleBtn");
+const themeIconDark = document.getElementById("themeIconDark");
+const themeIconLight = document.getElementById("themeIconLight");
+
+const siteFavicon = document.getElementById("siteFavicon");
+const currentDomainEl = document.getElementById("currentDomain");
+const unsupportedWarning = document.getElementById("unsupportedWarning");
+
+const tabManualBtn = document.getElementById("tabManualBtn");
+const tabAutoBtn = document.getElementById("tabAutoBtn");
+const tabManualPane = document.getElementById("tab-manual");
+const tabAutoPane = document.getElementById("tab-auto");
+
+// Mode 1 Elements
+const setupView = document.getElementById("setupView");
+const activeView = document.getElementById("activeView");
+const presetButtons = document.querySelectorAll("#setupView .preset-btn");
+const customMinutesInput = document.getElementById("customMinutes");
+const stepMinusBtn = document.getElementById("stepMinusBtn");
+const stepPlusBtn = document.getElementById("stepPlusBtn");
+const startTimerBtn = document.getElementById("startTimerBtn");
+const cancelTimerBtn = document.getElementById("cancelTimerBtn");
+
+const countdownDisplay = document.getElementById("countdownDisplay");
+const timerFillBar = document.getElementById("timerFillBar");
+const finishTimeText = document.getElementById("finishTimeText");
+
+const otherTimersSection = document.getElementById("otherTimersSection");
+const otherTimersCount = document.getElementById("otherTimersCount");
+const otherTimersList = document.getElementById("otherTimersList");
+
+// Mode 2 Elements
+const siteLimitActiveBox = document.getElementById("siteLimitActiveBox");
+const siteLimitFormBox = document.getElementById("siteLimitFormBox");
+const limitStatusBadge = document.getElementById("limitStatusBadge");
+const limitUsageText = document.getElementById("limitUsageText");
+const limitMaxText = document.getElementById("limitMaxText");
+const limitRemainingText = document.getElementById("limitRemainingText");
+const limitProgressBar = document.getElementById("limitProgressBar");
+const editCurrentLimitBtn = document.getElementById("editCurrentLimitBtn");
+const deleteCurrentLimitBtn = document.getElementById("deleteCurrentLimitBtn");
+
+const autoChips = document.querySelectorAll("#autoChips .preset-btn");
+const autoMinutesInput = document.getElementById("autoMinutesInput");
+const saveAutoLimitBtn = document.getElementById("saveAutoLimitBtn");
+
+const allLimitsList = document.getElementById("allLimitsList");
+const allLimitsCount = document.getElementById("allLimitsCount");
+const emptyLimitsMsg = document.getElementById("emptyLimitsMsg");
+
+// -------------------------------------------------------------
+// Inisialisasi
+// -------------------------------------------------------------
+document.addEventListener("DOMContentLoaded", async () => {
+  initTheme();
+  setupTabs();
+  setupPresets();
+  setupAutoModeControls();
+
+  await detectCurrentSite();
+  await refreshUI();
+
+  startTimerBtn.addEventListener("click", handleStartTimer);
+  cancelTimerBtn.addEventListener("click", handleCancelTimer);
+});
+
+// -------------------------------------------------------------
+// 1. Theme Management (Matte Light & Dark)
+// -------------------------------------------------------------
+function initTheme() {
+  chrome.storage.local.get("preferredTheme", (data) => {
+    let theme = data.preferredTheme;
+    if (!theme) {
+      theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    }
+    applyTheme(theme);
+  });
+
+  themeToggleBtn.addEventListener("click", () => {
+    const currentTheme = document.documentElement.getAttribute("data-theme") || "light";
+    const nextTheme = currentTheme === "dark" ? "light" : "dark";
+    applyTheme(nextTheme);
+    chrome.storage.local.set({ preferredTheme: nextTheme });
+  });
+}
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute("data-theme", theme);
+  if (theme === "dark") {
+    themeIconDark.classList.add("hidden");
+    themeIconLight.classList.remove("hidden");
+  } else {
+    themeIconDark.classList.remove("hidden");
+    themeIconLight.classList.add("hidden");
+  }
+}
+
+// -------------------------------------------------------------
+// 2. Navigasi Tab
+// -------------------------------------------------------------
+function setupTabs() {
+  chrome.storage.local.get("activePopupTab", (data) => {
+    if (data.activePopupTab) {
+      switchTab(data.activePopupTab);
+    }
+  });
+
+  tabManualBtn.addEventListener("click", () => {
+    switchTab("tab-manual");
+    chrome.storage.local.set({ activePopupTab: "tab-manual" });
+  });
+
+  tabAutoBtn.addEventListener("click", () => {
+    switchTab("tab-auto");
+    chrome.storage.local.set({ activePopupTab: "tab-auto" });
+  });
+}
+
+function switchTab(tabId) {
+  const isManual = tabId === "tab-manual";
+  tabManualBtn.classList.toggle("active", isManual);
+  tabManualBtn.setAttribute("aria-selected", isManual ? "true" : "false");
+  tabManualPane.classList.toggle("active", isManual);
+
+  tabAutoBtn.classList.toggle("active", !isManual);
+  tabAutoBtn.setAttribute("aria-selected", !isManual ? "true" : "false");
+  tabAutoPane.classList.toggle("active", !isManual);
+}
+
+// -------------------------------------------------------------
+// 3. Preset Durasi & Stepper (Mode 1)
+// -------------------------------------------------------------
+function setupPresets() {
+  presetButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      presetButtons.forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      customMinutesInput.value = btn.getAttribute("data-mins");
+    });
+  });
+
+  customMinutesInput.addEventListener("input", () => {
+    const val = customMinutesInput.value;
+    presetButtons.forEach((btn) => {
+      btn.classList.toggle("active", btn.getAttribute("data-mins") === val);
+    });
+  });
+
+  stepMinusBtn.addEventListener("click", () => {
+    let current = parseInt(customMinutesInput.value, 10) || 25;
+    current = Math.max(1, current - 5);
+    customMinutesInput.value = current;
+    syncPresetActiveState(current);
+  });
+
+  stepPlusBtn.addEventListener("click", () => {
+    let current = parseInt(customMinutesInput.value, 10) || 25;
+    current = Math.min(720, current + 5);
+    customMinutesInput.value = current;
+    syncPresetActiveState(current);
+  });
+}
+
+function syncPresetActiveState(mins) {
+  const strMins = String(mins);
+  presetButtons.forEach((btn) => {
+    btn.classList.toggle("active", btn.getAttribute("data-mins") === strMins);
+  });
+}
+
+// -------------------------------------------------------------
+// 4. Setup Mode 2 Controls
+// -------------------------------------------------------------
+function setupAutoModeControls() {
+  autoChips.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      autoChips.forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      autoMinutesInput.value = btn.getAttribute("data-mins");
+    });
+  });
+
+  autoMinutesInput.addEventListener("input", () => {
+    const val = autoMinutesInput.value;
+    autoChips.forEach((btn) => {
+      btn.classList.toggle("active", btn.getAttribute("data-mins") === val);
+    });
+  });
+
+  saveAutoLimitBtn.addEventListener("click", handleSaveAutoLimit);
+  editCurrentLimitBtn.addEventListener("click", () => {
+    siteLimitFormBox.classList.remove("hidden");
+    siteLimitActiveBox.classList.add("hidden");
+    autoMinutesInput.focus();
+    autoMinutesInput.select();
+  });
+  deleteCurrentLimitBtn.addEventListener("click", handleDeleteCurrentLimit);
+}
+
+// -------------------------------------------------------------
+// 5. Deteksi Website Aktif
+// -------------------------------------------------------------
+async function detectCurrentSite() {
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tab || !tab.url) {
+      setUnsupported("Tidak ada tab aktif");
+      return;
+    }
+
+    const url = new URL(tab.url);
+    if (!url.protocol.startsWith("http")) {
+      setUnsupported("Halaman internal browser");
+      return;
+    }
+
+    currentDomain = url.hostname;
+    currentDomainEl.textContent = currentDomain;
+    unsupportedWarning.classList.add("hidden");
+
+    siteFavicon.src = `https://www.google.com/s2/favicons?domain=${currentDomain}&sz=32`;
+    siteFavicon.onerror = () => {
+      siteFavicon.src = "icons/icon48.png";
+    };
+
+    startTimerBtn.disabled = false;
+    saveAutoLimitBtn.disabled = false;
+  } catch {
+    setUnsupported("Halaman tidak didukung");
+  }
+}
+
+function setUnsupported(label) {
+  currentDomain = "";
+  currentDomainEl.textContent = label;
+  siteFavicon.src = "icons/icon48.png";
+  unsupportedWarning.classList.remove("hidden");
+  startTimerBtn.disabled = true;
+  saveAutoLimitBtn.disabled = true;
+}
+
+// -------------------------------------------------------------
+// 6. Refresh UI
+// -------------------------------------------------------------
+async function refreshUI() {
+  clearInterval(countdownInterval);
+  clearInterval(otherTimersInterval);
+
+  const data = await chrome.storage.local.get([
+    "manualTimers",
+    "autoLimits",
+    "dailyUsage",
+  ]);
+
+  const manualTimers = data.manualTimers || {};
+  const autoLimits = data.autoLimits || {};
+  const dailyUsage = data.dailyUsage || {};
+
+  renderMode1(manualTimers);
+  renderMode2(autoLimits, dailyUsage);
+}
+
+// -------------------------------------------------------------
+// 7. Render Mode 1 (Timer Aktif)
+// -------------------------------------------------------------
+function renderMode1(manualTimers) {
+  const activeTimer = currentDomain ? manualTimers[currentDomain] : null;
+
+  if (activeTimer && activeTimer.endTime > Date.now()) {
+    showActiveCountdownView(activeTimer);
+  } else {
+    setupView.classList.remove("hidden");
+    activeView.classList.add("hidden");
+  }
+
+  renderOtherTimers(manualTimers);
+}
+
+function showActiveCountdownView(timer) {
+  setupView.classList.add("hidden");
+  activeView.classList.remove("hidden");
+
+  const finishDate = new Date(timer.endTime);
+  const finishHours = String(finishDate.getHours()).padStart(2, "0");
+  const finishMinutes = String(finishDate.getMinutes()).padStart(2, "0");
+  finishTimeText.textContent = `Target selesai: ${finishHours}:${finishMinutes}`;
+
+  const totalDurationMs = timer.endTime - timer.startTime;
+
+  function updateCountdown() {
+    const now = Date.now();
+    const remainingMs = timer.endTime - now;
+
+    if (remainingMs <= 0) {
+      clearInterval(countdownInterval);
+      countdownDisplay.textContent = "00:00";
+      timerFillBar.style.width = "0%";
+      refreshUI();
+      return;
+    }
+
+    const totalSeconds = Math.floor(remainingMs / 1000);
+    const mins = Math.floor(totalSeconds / 60);
+    const secs = totalSeconds % 60;
+    countdownDisplay.textContent = `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+
+    const fraction = Math.max(0, Math.min(1, remainingMs / totalDurationMs));
+    const percent = fraction * 100;
+    timerFillBar.style.width = `${percent}%`;
+
+    if (percent <= 20) {
+      timerFillBar.classList.add("danger");
+    } else {
+      timerFillBar.classList.remove("danger");
+    }
+  }
+
+  updateCountdown();
+  countdownInterval = setInterval(updateCountdown, 1000);
+}
+
+async function handleStartTimer() {
+  if (!currentDomain) return;
+
+  const durationMinutes = parseInt(customMinutesInput.value, 10);
+  if (isNaN(durationMinutes) || durationMinutes <= 0) {
+    customMinutesInput.focus();
+    customMinutesInput.select();
+    return;
+  }
+
+  const now = Date.now();
+  const endTime = now + durationMinutes * 60 * 1000;
+
+  const { manualTimers = {} } = await chrome.storage.local.get("manualTimers");
+  manualTimers[currentDomain] = {
+    domain: currentDomain,
+    durationMinutes: durationMinutes,
+    startTime: now,
+    endTime: endTime,
+  };
+  await chrome.storage.local.set({ manualTimers });
+
+  await chrome.alarms.create(`timer_${currentDomain}`, { when: endTime });
+  chrome.runtime.sendMessage({ type: "TIMER_UPDATED" });
+  await refreshUI();
+}
+
+async function handleCancelTimer() {
+  if (!currentDomain) return;
+
+  const { manualTimers = {} } = await chrome.storage.local.get("manualTimers");
+  delete manualTimers[currentDomain];
+  await chrome.storage.local.set({ manualTimers });
+
+  await chrome.alarms.clear(`timer_${currentDomain}`);
+  chrome.runtime.sendMessage({ type: "TIMER_UPDATED" });
+  await refreshUI();
+}
+
+function renderOtherTimers(manualTimers) {
+  const otherKeys = Object.keys(manualTimers).filter(
+    (domain) => domain !== currentDomain && manualTimers[domain].endTime > Date.now()
+  );
+
+  if (otherKeys.length === 0) {
+    otherTimersSection.classList.add("hidden");
+    return;
+  }
+
+  otherTimersSection.classList.remove("hidden");
+  otherTimersCount.textContent = otherKeys.length;
+
+  function updateOtherList() {
+    otherTimersList.innerHTML = "";
+    const now = Date.now();
+
+    otherKeys.forEach((domain) => {
+      const timer = manualTimers[domain];
+      const remainingMs = timer.endTime - now;
+
+      if (remainingMs > 0) {
+        const totalSecs = Math.floor(remainingMs / 1000);
+        const mins = Math.floor(totalSecs / 60);
+        const secs = totalSecs % 60;
+
+        const li = document.createElement("li");
+        li.className = "timer-row";
+        li.innerHTML = `
+          <span class="timer-row-domain" title="${domain}">${domain}</span>
+          <span class="timer-row-time">${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}</span>
+        `;
+        otherTimersList.appendChild(li);
+      }
+    });
+  }
+
+  updateOtherList();
+  otherTimersInterval = setInterval(updateOtherList, 1000);
+}
+
+// -------------------------------------------------------------
+// 8. Render Mode 2 (Batas Harian)
+// -------------------------------------------------------------
+function renderMode2(autoLimits, dailyUsage) {
+  const todayKey = getTodayKey();
+  const currentLimit = currentDomain ? autoLimits[currentDomain] : null;
+
+  if (currentLimit && currentLimit.enabled) {
+    siteLimitFormBox.classList.add("hidden");
+    siteLimitActiveBox.classList.remove("hidden");
+
+    const spentSecs = dailyUsage[todayKey]?.[currentDomain]?.spentSeconds || 0;
+    const limitSecs = currentLimit.dailyLimitMinutes * 60;
+    const remainingSecs = Math.max(0, limitSecs - spentSecs);
+
+    limitUsageText.textContent = formatMinutesSeconds(spentSecs);
+    limitMaxText.textContent = `${currentLimit.dailyLimitMinutes}m`;
+
+    if (remainingSecs <= 0) {
+      limitRemainingText.textContent = "(Batas tercapai)";
+      limitStatusBadge.className = "status-tag danger";
+      limitStatusBadge.textContent = "Batas Tercapai";
+      limitProgressBar.className = "limit-fill danger";
+      limitProgressBar.style.width = "100%";
+    } else {
+      limitRemainingText.textContent = `(${formatMinutesSeconds(remainingSecs)} tersisa)`;
+
+      const percent = Math.min(100, (spentSecs / limitSecs) * 100);
+      limitProgressBar.style.width = `${percent}%`;
+
+      if (percent >= 70) {
+        limitStatusBadge.className = "status-tag warning";
+        limitStatusBadge.textContent = "Hampir Habis";
+        limitProgressBar.className = "limit-fill warning";
+      } else {
+        limitStatusBadge.className = "status-tag safe";
+        limitStatusBadge.textContent = "Aman";
+        limitProgressBar.className = "limit-fill";
+      }
+    }
+  } else {
+    siteLimitActiveBox.classList.add("hidden");
+    siteLimitFormBox.classList.remove("hidden");
+    if (currentDomain) {
+      autoMinutesInput.value = "30";
+    }
+  }
+
+  renderAllLimitsFeed(autoLimits, dailyUsage, todayKey);
+}
+
+function renderAllLimitsFeed(autoLimits, dailyUsage, todayKey) {
+  const domains = Object.keys(autoLimits);
+  allLimitsCount.textContent = domains.length;
+
+  if (domains.length === 0) {
+    emptyLimitsMsg.classList.remove("hidden");
+    allLimitsList.innerHTML = "";
+    return;
+  }
+
+  emptyLimitsMsg.classList.add("hidden");
+  allLimitsList.innerHTML = "";
+
+  domains.forEach((dom) => {
+    const item = autoLimits[dom];
+    const spentSecs = dailyUsage[todayKey]?.[dom]?.spentSeconds || 0;
+    const limitSecs = item.dailyLimitMinutes * 60;
+    const percent = Math.min(100, Math.round((spentSecs / limitSecs) * 100));
+
+    let barClass = "limit-fill";
+    if (percent >= 100) barClass += " danger";
+    else if (percent >= 70) barClass += " warning";
+
+    const li = document.createElement("li");
+    li.className = "limit-feed-item";
+    li.innerHTML = `
+      <div class="feed-row-top">
+        <span class="feed-domain" title="${dom}">${dom}</span>
+        <button class="feed-del-btn" data-domain="${dom}" title="Hapus batas ${dom}">Hapus</button>
+      </div>
+      <div class="limit-track">
+        <div class="${barClass}" style="width: ${percent}%;"></div>
+      </div>
+      <div class="feed-row-bottom">
+        <span>${formatMinutesSeconds(spentSecs)} / ${item.dailyLimitMinutes}m</span>
+        <span>${percent}%</span>
+      </div>
+    `;
+
+    li.querySelector(".feed-del-btn").addEventListener("click", async (e) => {
+      const domainToDelete = e.currentTarget.getAttribute("data-domain");
+      await removeAutoLimit(domainToDelete);
+    });
+
+    allLimitsList.appendChild(li);
+  });
+}
+
+async function handleSaveAutoLimit() {
+  if (!currentDomain) return;
+
+  const minutes = parseInt(autoMinutesInput.value, 10);
+  if (isNaN(minutes) || minutes <= 0) {
+    autoMinutesInput.focus();
+    autoMinutesInput.select();
+    return;
+  }
+
+  const { autoLimits = {} } = await chrome.storage.local.get("autoLimits");
+  autoLimits[currentDomain] = {
+    domain: currentDomain,
+    dailyLimitMinutes: minutes,
+    enabled: true,
+  };
+
+  await chrome.storage.local.set({ autoLimits });
+  chrome.runtime.sendMessage({ type: "AUTO_LIMIT_UPDATED" });
+  await refreshUI();
+}
+
+async function handleDeleteCurrentLimit() {
+  if (!currentDomain) return;
+  await removeAutoLimit(currentDomain);
+}
+
+async function removeAutoLimit(domain) {
+  const { autoLimits = {} } = await chrome.storage.local.get("autoLimits");
+  delete autoLimits[domain];
+  await chrome.storage.local.set({ autoLimits });
+
+  chrome.runtime.sendMessage({ type: "AUTO_LIMIT_UPDATED" });
+  await refreshUI();
+}

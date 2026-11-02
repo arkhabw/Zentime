@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zentime - Web Timer & Screen Time</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="brand">
+        <span class="brand-title">Zentime</span>
+        <span class="brand-divider">/</span>
+        <span class="brand-subtitle">Fokus</span>
+      </div>
+      <button id="themeToggleBtn" class="theme-toggle" type="button" aria-label="Ganti mode tema">
+        <svg id="themeIconDark" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+        <svg id="themeIconLight" class="hidden" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="5"/>
+          <line x1="12" y1="1" x2="12" y2="3"/>
+          <line x1="12" y1="21" x2="12" y2="23"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="1" y1="12" x2="3" y2="12"/>
+          <line x1="21" y1="12" x2="23" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+      </button>
+    </header>
+
+    <!-- Domain Card: Jujur tanpa status dot dekoratif -->
+    <div class="site-bar" id="siteHeroCard">
+      <img id="siteFavicon" class="site-favicon" src="icons/icon48.png" alt="" width="16" height="16">
+      <span class="site-domain" id="currentDomain">Mendeteksi tab...</span>
+    </div>
+
+    <!-- Warning jika di luar http/https -->
+    <div id="unsupportedWarning" class="warning-bar hidden" role="alert">
+      <span>Timer hanya aktif pada alamat web reguler (http/https).</span>
+    </div>
+
+    <!-- Navigasi Tab: Bersih dan berstruktur -->
+    <nav class="tab-nav" role="tablist">
+      <button class="tab-item active" id="tabManualBtn" data-tab="tab-manual" role="tab" aria-selected="true" aria-controls="tab-manual">
+        Timer Manual
+      </button>
+      <button class="tab-item" id="tabAutoBtn" data-tab="tab-auto" role="tab" aria-selected="false" aria-controls="tab-auto">
+        Batas Harian
+      </button>
+    </nav>
+
+    <!-- ============================================== -->
+    <!-- TAB 1: MODE TIMER MANUAL                       -->
+    <!-- ============================================== -->
+    <main id="tab-manual" class="tab-panel active" role="tabpanel" aria-labelledby="tabManualBtn">
+      <!-- 1A: Setup Form -->
+      <div id="setupView" class="panel-section">
+        <div class="preset-row">
+          <button type="button" class="preset-btn" data-mins="15">15m</button>
+          <button type="button" class="preset-btn active" data-mins="25">25m</button>
+          <button type="button" class="preset-btn" data-mins="45">45m</button>
+          <button type="button" class="preset-btn" data-mins="60">60m</button>
+        </div>
+
+        <div class="input-card">
+          <label for="customMinutes" class="input-card-label">Durasi kustom</label>
+          <div class="input-counter">
+            <button type="button" id="stepMinusBtn" class="counter-step" aria-label="Kurang 5 menit">-5</button>
+            <div class="counter-field">
+              <input type="number" id="customMinutes" min="1" max="720" value="25" aria-label="Durasi dalam menit">
+              <span class="counter-unit">menit</span>
+            </div>
+            <button type="button" id="stepPlusBtn" class="counter-step" aria-label="Tambah 5 menit">+5</button>
+          </div>
+        </div>
+
+        <button id="startTimerBtn" class="btn-primary" type="button">
+          Mulai Timer
+        </button>
+      </div>
+
+      <!-- 1B: Active Running View (Typography-first, clean precision bar) -->
+      <div id="activeView" class="panel-section hidden">
+        <div class="timer-card">
+          <div class="timer-digits" id="countdownDisplay">00:00</div>
+          <div class="timer-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100">
+            <div class="timer-fill" id="timerFillBar"></div>
+          </div>
+          <div class="timer-meta">
+            <span class="meta-target" id="finishTimeText">Target selesai: --:--</span>
+          </div>
+        </div>
+
+        <button id="cancelTimerBtn" class="btn-danger" type="button">
+          Hentikan Timer
+        </button>
+      </div>
+
+      <!-- Other active timers -->
+      <section id="otherTimersSection" class="sub-section hidden" aria-label="Timer di website lain">
+        <div class="sub-header">
+          <span>Website Lain yang Berjalan</span>
+          <span id="otherTimersCount" class="sub-count">0</span>
+        </div>
+        <ul id="otherTimersList" class="timer-list"></ul>
+      </section>
+    </main>
+
+    <!-- ============================================== -->
+    <!-- TAB 2: MODE BATAS HARIAN (SCREEN TIME)         -->
+    <!-- ============================================== -->
+    <main id="tab-auto" class="tab-panel" role="tabpanel" aria-labelledby="tabAutoBtn">
+      <!-- Current Site Limit Section -->
+      <section id="currentSiteLimitSection">
+        <!-- Jika sudah ada limit aktif -->
+        <div id="siteLimitActiveBox" class="limit-card hidden">
+          <div class="limit-card-header">
+            <span class="limit-title">Penggunaan Hari Ini</span>
+            <span id="limitStatusBadge" class="status-tag safe">Aman</span>
+          </div>
+
+          <div class="limit-numbers">
+            <span id="limitUsageText" class="num-spent">0m</span>
+            <span class="num-sep">/</span>
+            <span id="limitMaxText" class="num-limit">30m</span>
+            <span id="limitRemainingText" class="num-remaining">(30m tersisa)</span>
+          </div>
+
+          <div class="limit-track">
+            <div id="limitProgressBar" class="limit-fill"></div>
+          </div>
+
+          <div class="limit-actions">
+            <button id="editCurrentLimitBtn" class="btn-link" type="button">Ubah Batas</button>
+            <button id="deleteCurrentLimitBtn" class="btn-link text-danger" type="button">Hapus</button>
+          </div>
+        </div>
+
+        <!-- Form Setup Limit -->
+        <div id="siteLimitFormBox" class="panel-section">
+          <div class="section-text">
+            <span class="text-heading">Batas Harian Situs Ini</span>
+            <span class="text-desc">Otomatis jeda saat beralih ke tab atau jendela lain.</span>
+          </div>
+
+          <div class="preset-row" id="autoChips">
+            <button type="button" class="preset-btn" data-mins="15">15m</button>
+            <button type="button" class="preset-btn active" data-mins="30">30m</button>
+            <button type="button" class="preset-btn" data-mins="45">45m</button>
+            <button type="button" class="preset-btn" data-mins="60">60m</button>
+          </div>
+
+          <div class="input-card">
+            <label for="autoMinutesInput" class="input-card-label">Batas harian</label>
+            <div class="counter-field">
+              <input type="number" id="autoMinutesInput" min="1" max="1440" value="30" aria-label="Batas harian dalam menit">
+              <span class="counter-unit">menit</span>
+            </div>
+          </div>
+
+          <button id="saveAutoLimitBtn" class="btn-primary" type="button">
+            Pasang Batas Harian
+          </button>
+        </div>
+      </section>
+
+      <!-- Monitored list -->
+      <section class="sub-section">
+        <div class="sub-header">
+          <span>Daftar Batas Website</span>
+          <span id="allLimitsCount" class="sub-count">0</span>
+        </div>
+
+        <ul id="allLimitsList" class="limit-list"></ul>
+
+        <div id="emptyLimitsMsg" class="empty-box">
+          <p class="empty-main">Belum ada website yang dibatasi.</p>
+          <p class="empty-sub">Atur batas waktu untuk membatasi media sosial dan situs yang memicu distraksi.</p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
