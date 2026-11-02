@@ -61,11 +61,17 @@ async function processTimeElapsed() {
       if (currentSpent >= limitSeconds && !dailyUsage[todayKey][lastDomain].notified) {
         dailyUsage[todayKey][lastDomain].notified = true;
 
+        const { preferredLanguage = "id" } = await chrome.storage.local.get("preferredLanguage");
+        const title = preferredLanguage === "en" ? "🛑 Daily Limit Reached!" : "🛑 Batas Harian Tercapai!";
+        const message = preferredLanguage === "en"
+          ? `You have used ${lastDomain} for ${limitMinutes} minutes today. Time for a break!`
+          : `Kamu sudah menggunakan ${lastDomain} selama ${limitMinutes} menit hari ini. Saatnya beristirahat!`;
+
         chrome.notifications.create(`autolimit_${lastDomain}_${Date.now()}`, {
           type: "basic",
           iconUrl: "icons/icon128.png",
-          title: "🛑 Batas Harian Tercapai!",
-          message: `Kamu sudah menggunakan ${lastDomain} selama ${limitMinutes} menit hari ini. Saatnya beristirahat!`,
+          title: title,
+          message: message,
           priority: 2,
           requireInteraction: true,
         });
@@ -134,11 +140,17 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     delete manualTimers[domain];
     await chrome.storage.local.set({ manualTimers });
 
+    const { preferredLanguage = "id" } = await chrome.storage.local.get("preferredLanguage");
+    const title = preferredLanguage === "en" ? "⏰ Time's Up!" : "⏰ Waktu Habis!";
+    const message = preferredLanguage === "en"
+      ? `Your time for ${domain} (${timerInfo?.durationMinutes || ''} min) is up!`
+      : `Waktu kamu untuk ${domain} (${timerInfo?.durationMinutes || ''} menit) sudah selesai!`;
+
     chrome.notifications.create(`alarm_${domain}_${Date.now()}`, {
       type: "basic",
       iconUrl: "icons/icon128.png",
-      title: "⏰ Waktu Habis!",
-      message: `Waktu kamu untuk ${domain} (${timerInfo?.durationMinutes || ''} menit) sudah selesai!`,
+      title: title,
+      message: message,
       priority: 2,
       requireInteraction: true,
     });

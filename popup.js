@@ -1,8 +1,95 @@
-// popup.js - Controller Ekstensi Web Timer (Anti-Slop Craftsmanship)
+// popup.js - Controller Ekstensi Zentime (Anti-Slop Craftsmanship & i18n Support)
 
 let currentDomain = "";
 let countdownInterval = null;
 let otherTimersInterval = null;
+let currentLang = "id";
+
+// -------------------------------------------------------------
+// Kamus Bahasa (i18n Dictionary)
+// -------------------------------------------------------------
+const I18N = {
+  id: {
+    brandSubtitle: "Fokus",
+    detectingTab: "Mendeteksi tab...",
+    unsupportedWarning: "Timer hanya aktif pada alamat web reguler (http/https).",
+    tabManual: "Timer Manual",
+    tabAuto: "Batas Harian",
+    customDuration: "Durasi kustom",
+    minutesUnit: "menit",
+    startTimer: "Mulai Timer",
+    stopTimer: "Hentikan Timer",
+    targetFinished: "Target selesai:",
+    otherWebsites: "Website Lain yang Berjalan",
+    todayUsage: "Penggunaan Hari Ini",
+    statusSafe: "Aman",
+    statusWarning: "Hampir Habis",
+    statusDanger: "Batas Tercapai",
+    remainingTime: "tersisa",
+    limitReachedText: "(Batas tercapai)",
+    editLimit: "Ubah Batas",
+    deleteLimit: "Hapus",
+    dailyLimitTitle: "Batas Harian Situs Ini",
+    dailyLimitDesc: "Otomatis jeda saat beralih ke tab atau jendela lain.",
+    maxPerDay: "Batas harian",
+    setLimitBtn: "Pasang Batas Harian",
+    monitoredListTitle: "Daftar Batas Website",
+    emptyLimitsMain: "Belum ada website yang dibatasi.",
+    emptyLimitsSub: "Atur batas waktu untuk membatasi media sosial dan situs yang memicu distraksi.",
+    noActiveTab: "Tidak ada tab aktif",
+    internalPage: "Halaman internal browser",
+    unsupportedPage: "Halaman tidak didukung",
+    timeSec: "d",
+    timeMin: "m",
+    langAria: "Pilihan bahasa",
+    themeAria: "Ganti mode tema",
+    stepMinusAria: "Kurang 5 menit",
+    stepPlusAria: "Tambah 5 menit",
+    langSliderTitle: "Ganti Bahasa (ID / EN)",
+  },
+  en: {
+    brandSubtitle: "Focus",
+    detectingTab: "Detecting active tab...",
+    unsupportedWarning: "Timer only works on standard websites (http/https).",
+    tabManual: "Manual Timer",
+    tabAuto: "Daily Limits",
+    customDuration: "Custom duration",
+    minutesUnit: "minutes",
+    startTimer: "Start Timer",
+    stopTimer: "Stop Timer",
+    targetFinished: "Target completion:",
+    otherWebsites: "Other Active Websites",
+    todayUsage: "Today's Screen Time",
+    statusSafe: "Safe",
+    statusWarning: "Near Limit",
+    statusDanger: "Limit Reached",
+    remainingTime: "remaining",
+    limitReachedText: "(Limit reached)",
+    editLimit: "Edit Limit",
+    deleteLimit: "Delete",
+    dailyLimitTitle: "Daily Limit for This Site",
+    dailyLimitDesc: "Automatically pauses when you switch tabs or windows.",
+    maxPerDay: "Daily quota",
+    setLimitBtn: "Set Daily Limit",
+    monitoredListTitle: "Monitored Websites",
+    emptyLimitsMain: "No websites monitored yet.",
+    emptyLimitsSub: "Set daily time limits to curb distracting websites.",
+    noActiveTab: "No active tab",
+    internalPage: "Internal browser page",
+    unsupportedPage: "Unsupported page",
+    timeSec: "s",
+    timeMin: "m",
+    langAria: "Language selection",
+    themeAria: "Toggle theme",
+    stepMinusAria: "Decrease 5 minutes",
+    stepPlusAria: "Increase 5 minutes",
+    langSliderTitle: "Switch Language (ID / EN)",
+  },
+};
+
+function t(key) {
+  return I18N[currentLang]?.[key] || I18N.id[key] || key;
+}
 
 // Helper: Format tanggal hari ini (YYYY-MM-DD)
 function getTodayKey() {
@@ -17,14 +104,21 @@ function getTodayKey() {
 function formatMinutesSeconds(totalSeconds) {
   const mins = Math.floor(totalSeconds / 60);
   const secs = totalSeconds % 60;
-  if (mins === 0) return `${secs}d`;
-  if (secs === 0) return `${mins}m`;
-  return `${mins}m ${secs}d`;
+  const minUnit = t("timeMin");
+  const secUnit = t("timeSec");
+
+  if (mins === 0) return `${secs}${secUnit}`;
+  if (secs === 0) return `${mins}${minUnit}`;
+  return `${mins}${minUnit} ${secs}${secUnit}`;
 }
 
 // -------------------------------------------------------------
 // DOM Elements
 // -------------------------------------------------------------
+const langSlider = document.getElementById("langSlider");
+const langBtnId = document.getElementById("langBtnId");
+const langBtnEn = document.getElementById("langBtnEn");
+
 const themeToggleBtn = document.getElementById("themeToggleBtn");
 const themeIconDark = document.getElementById("themeIconDark");
 const themeIconLight = document.getElementById("themeIconLight");
@@ -79,6 +173,7 @@ const emptyLimitsMsg = document.getElementById("emptyLimitsMsg");
 // Inisialisasi
 // -------------------------------------------------------------
 document.addEventListener("DOMContentLoaded", async () => {
+  await initLanguage();
   initTheme();
   setupTabs();
   setupPresets();
@@ -92,7 +187,82 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 // -------------------------------------------------------------
-// 1. Theme Management (Matte Light & Dark)
+// 1. Language Slider & Localization (i18n)
+// -------------------------------------------------------------
+async function initLanguage() {
+  const data = await chrome.storage.local.get("preferredLanguage");
+  if (data.preferredLanguage) {
+    currentLang = data.preferredLanguage;
+  } else {
+    currentLang = navigator.language && navigator.language.startsWith("id") ? "id" : "en";
+  }
+
+  applyLanguage(currentLang, false);
+
+  langBtnId.addEventListener("click", (e) => {
+    e.stopPropagation();
+    setLanguage("id");
+  });
+
+  langBtnEn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    setLanguage("en");
+  });
+
+  // Clicking anywhere on slider toggles language
+  langSlider.addEventListener("click", () => {
+    const nextLang = currentLang === "id" ? "en" : "id";
+    setLanguage(nextLang);
+  });
+}
+
+function setLanguage(lang) {
+  if (currentLang === lang) return;
+  currentLang = lang;
+  chrome.storage.local.set({ preferredLanguage: lang });
+  applyLanguage(lang, true);
+}
+
+function applyLanguage(lang, shouldRefresh = true) {
+  document.documentElement.setAttribute("lang", lang);
+
+  // Update slider thumb & active states
+  if (langSlider) {
+    langSlider.setAttribute("data-current", lang);
+    langSlider.setAttribute("title", t("langSliderTitle"));
+  }
+  if (langBtnId) {
+    const isId = lang === "id";
+    langBtnId.classList.toggle("active", isId);
+    langBtnId.setAttribute("aria-checked", isId ? "true" : "false");
+  }
+  if (langBtnEn) {
+    const isEn = lang === "en";
+    langBtnEn.classList.toggle("active", isEn);
+    langBtnEn.setAttribute("aria-checked", isEn ? "true" : "false");
+  }
+
+  // Update all static i18n text nodes
+  document.querySelectorAll("[data-i18n]").forEach((el) => {
+    const key = el.getAttribute("data-i18n");
+    if (key && I18N[lang]?.[key]) {
+      el.textContent = I18N[lang][key];
+    }
+  });
+
+  // Update aria-labels
+  if (themeToggleBtn) themeToggleBtn.setAttribute("aria-label", t("themeAria"));
+  if (stepMinusBtn) stepMinusBtn.setAttribute("aria-label", t("stepMinusAria"));
+  if (stepPlusBtn) stepPlusBtn.setAttribute("aria-label", t("stepPlusAria"));
+
+  if (shouldRefresh) {
+    detectCurrentSite();
+    refreshUI();
+  }
+}
+
+// -------------------------------------------------------------
+// 2. Theme Management (Matte Light & Dark)
 // -------------------------------------------------------------
 function initTheme() {
   chrome.storage.local.get("preferredTheme", (data) => {
@@ -123,7 +293,7 @@ function applyTheme(theme) {
 }
 
 // -------------------------------------------------------------
-// 2. Navigasi Tab
+// 3. Navigasi Tab
 // -------------------------------------------------------------
 function setupTabs() {
   chrome.storage.local.get("activePopupTab", (data) => {
@@ -155,7 +325,7 @@ function switchTab(tabId) {
 }
 
 // -------------------------------------------------------------
-// 3. Preset Durasi & Stepper (Mode 1)
+// 4. Preset Durasi & Stepper (Mode 1)
 // -------------------------------------------------------------
 function setupPresets() {
   presetButtons.forEach((btn) => {
@@ -196,7 +366,7 @@ function syncPresetActiveState(mins) {
 }
 
 // -------------------------------------------------------------
-// 4. Setup Mode 2 Controls
+// 5. Setup Mode 2 Controls
 // -------------------------------------------------------------
 function setupAutoModeControls() {
   autoChips.forEach((btn) => {
@@ -225,19 +395,19 @@ function setupAutoModeControls() {
 }
 
 // -------------------------------------------------------------
-// 5. Deteksi Website Aktif
+// 6. Deteksi Website Aktif
 // -------------------------------------------------------------
 async function detectCurrentSite() {
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!tab || !tab.url) {
-      setUnsupported("Tidak ada tab aktif");
+      setUnsupported(t("noActiveTab"));
       return;
     }
 
     const url = new URL(tab.url);
     if (!url.protocol.startsWith("http")) {
-      setUnsupported("Halaman internal browser");
+      setUnsupported(t("internalPage"));
       return;
     }
 
@@ -253,7 +423,7 @@ async function detectCurrentSite() {
     startTimerBtn.disabled = false;
     saveAutoLimitBtn.disabled = false;
   } catch {
-    setUnsupported("Halaman tidak didukung");
+    setUnsupported(t("unsupportedPage"));
   }
 }
 
@@ -267,7 +437,7 @@ function setUnsupported(label) {
 }
 
 // -------------------------------------------------------------
-// 6. Refresh UI
+// 7. Refresh UI
 // -------------------------------------------------------------
 async function refreshUI() {
   clearInterval(countdownInterval);
@@ -288,7 +458,7 @@ async function refreshUI() {
 }
 
 // -------------------------------------------------------------
-// 7. Render Mode 1 (Timer Aktif)
+// 8. Render Mode 1 (Timer Aktif)
 // -------------------------------------------------------------
 function renderMode1(manualTimers) {
   const activeTimer = currentDomain ? manualTimers[currentDomain] : null;
@@ -310,7 +480,7 @@ function showActiveCountdownView(timer) {
   const finishDate = new Date(timer.endTime);
   const finishHours = String(finishDate.getHours()).padStart(2, "0");
   const finishMinutes = String(finishDate.getMinutes()).padStart(2, "0");
-  finishTimeText.textContent = `Target selesai: ${finishHours}:${finishMinutes}`;
+  finishTimeText.textContent = `${t("targetFinished")} ${finishHours}:${finishMinutes}`;
 
   const totalDurationMs = timer.endTime - timer.startTime;
 
@@ -427,7 +597,7 @@ function renderOtherTimers(manualTimers) {
 }
 
 // -------------------------------------------------------------
-// 8. Render Mode 2 (Batas Harian)
+// 9. Render Mode 2 (Batas Harian)
 // -------------------------------------------------------------
 function renderMode2(autoLimits, dailyUsage) {
   const todayKey = getTodayKey();
@@ -445,24 +615,24 @@ function renderMode2(autoLimits, dailyUsage) {
     limitMaxText.textContent = `${currentLimit.dailyLimitMinutes}m`;
 
     if (remainingSecs <= 0) {
-      limitRemainingText.textContent = "(Batas tercapai)";
+      limitRemainingText.textContent = t("limitReachedText");
       limitStatusBadge.className = "status-tag danger";
-      limitStatusBadge.textContent = "Batas Tercapai";
+      limitStatusBadge.textContent = t("statusDanger");
       limitProgressBar.className = "limit-fill danger";
       limitProgressBar.style.width = "100%";
     } else {
-      limitRemainingText.textContent = `(${formatMinutesSeconds(remainingSecs)} tersisa)`;
+      limitRemainingText.textContent = `(${formatMinutesSeconds(remainingSecs)} ${t("remainingTime")})`;
 
       const percent = Math.min(100, (spentSecs / limitSecs) * 100);
       limitProgressBar.style.width = `${percent}%`;
 
       if (percent >= 70) {
         limitStatusBadge.className = "status-tag warning";
-        limitStatusBadge.textContent = "Hampir Habis";
+        limitStatusBadge.textContent = t("statusWarning");
         limitProgressBar.className = "limit-fill warning";
       } else {
         limitStatusBadge.className = "status-tag safe";
-        limitStatusBadge.textContent = "Aman";
+        limitStatusBadge.textContent = t("statusSafe");
         limitProgressBar.className = "limit-fill";
       }
     }
@@ -505,7 +675,7 @@ function renderAllLimitsFeed(autoLimits, dailyUsage, todayKey) {
     li.innerHTML = `
       <div class="feed-row-top">
         <span class="feed-domain" title="${dom}">${dom}</span>
-        <button class="feed-del-btn" data-domain="${dom}" title="Hapus batas ${dom}">Hapus</button>
+        <button class="feed-del-btn" data-domain="${dom}" title="${t("deleteLimit")} ${dom}">${t("deleteLimit")}</button>
       </div>
       <div class="limit-track">
         <div class="${barClass}" style="width: ${percent}%;"></div>

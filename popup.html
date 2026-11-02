@@ -13,24 +13,33 @@
       <div class="brand">
         <span class="brand-title">Zentime</span>
         <span class="brand-divider">/</span>
-        <span class="brand-subtitle">Fokus</span>
+        <span class="brand-subtitle" data-i18n="brandSubtitle">Fokus</span>
       </div>
-      <button id="themeToggleBtn" class="theme-toggle" type="button" aria-label="Ganti mode tema">
-        <svg id="themeIconDark" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-        </svg>
-        <svg id="themeIconLight" class="hidden" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="5"/>
-          <line x1="12" y1="1" x2="12" y2="3"/>
-          <line x1="12" y1="21" x2="12" y2="23"/>
-          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-          <line x1="1" y1="12" x2="3" y2="12"/>
-          <line x1="21" y1="12" x2="23" y2="12"/>
-          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-        </svg>
-      </button>
+      <div class="header-controls">
+        <!-- Language Slider Switch -->
+        <div class="lang-slider" id="langSlider" role="radiogroup" aria-label="Pilihan bahasa" data-current="id" title="Ganti Bahasa (ID / EN)">
+          <div class="lang-slider-thumb"></div>
+          <button type="button" class="lang-btn active" id="langBtnId" data-lang="id" role="radio" aria-checked="true">ID</button>
+          <button type="button" class="lang-btn" id="langBtnEn" data-lang="en" role="radio" aria-checked="false">EN</button>
+        </div>
+        <!-- Theme Toggle -->
+        <button id="themeToggleBtn" class="theme-toggle" type="button" aria-label="Ganti mode tema">
+          <svg id="themeIconDark" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+          <svg id="themeIconLight" class="hidden" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"/>
+            <line x1="12" y1="1" x2="12" y2="3"/>
+            <line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/>
+            <line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+        </button>
+      </div>
     </header>
 
     <!-- Domain Card: Jujur tanpa status dot dekoratif -->
@@ -41,15 +50,15 @@
 
     <!-- Warning jika di luar http/https -->
     <div id="unsupportedWarning" class="warning-bar hidden" role="alert">
-      <span>Timer hanya aktif pada alamat web reguler (http/https).</span>
+      <span data-i18n="unsupportedWarning">Timer hanya aktif pada alamat web reguler (http/https).</span>
     </div>
 
     <!-- Navigasi Tab: Bersih dan berstruktur -->
     <nav class="tab-nav" role="tablist">
-      <button class="tab-item active" id="tabManualBtn" data-tab="tab-manual" role="tab" aria-selected="true" aria-controls="tab-manual">
+      <button class="tab-item active" id="tabManualBtn" data-tab="tab-manual" role="tab" aria-selected="true" aria-controls="tab-manual" data-i18n="tabManual">
         Timer Manual
       </button>
-      <button class="tab-item" id="tabAutoBtn" data-tab="tab-auto" role="tab" aria-selected="false" aria-controls="tab-auto">
+      <button class="tab-item" id="tabAutoBtn" data-tab="tab-auto" role="tab" aria-selected="false" aria-controls="tab-auto" data-i18n="tabAuto">
         Batas Harian
       </button>
     </nav>
@@ -68,18 +77,18 @@
         </div>
 
         <div class="input-card">
-          <label for="customMinutes" class="input-card-label">Durasi kustom</label>
+          <label for="customMinutes" class="input-card-label" data-i18n="customDuration">Durasi kustom</label>
           <div class="input-counter">
             <button type="button" id="stepMinusBtn" class="counter-step" aria-label="Kurang 5 menit">-5</button>
             <div class="counter-field">
               <input type="number" id="customMinutes" min="1" max="720" value="25" aria-label="Durasi dalam menit">
-              <span class="counter-unit">menit</span>
+              <span class="counter-unit" data-i18n="minutesUnit">menit</span>
             </div>
             <button type="button" id="stepPlusBtn" class="counter-step" aria-label="Tambah 5 menit">+5</button>
           </div>
         </div>
 
-        <button id="startTimerBtn" class="btn-primary" type="button">
+        <button id="startTimerBtn" class="btn-primary" type="button" data-i18n="startTimer">
           Mulai Timer
         </button>
       </div>
@@ -96,7 +105,7 @@
           </div>
         </div>
 
-        <button id="cancelTimerBtn" class="btn-danger" type="button">
+        <button id="cancelTimerBtn" class="btn-danger" type="button" data-i18n="stopTimer">
           Hentikan Timer
         </button>
       </div>
@@ -104,7 +113,7 @@
       <!-- Other active timers -->
       <section id="otherTimersSection" class="sub-section hidden" aria-label="Timer di website lain">
         <div class="sub-header">
-          <span>Website Lain yang Berjalan</span>
+          <span data-i18n="otherWebsites">Website Lain yang Berjalan</span>
           <span id="otherTimersCount" class="sub-count">0</span>
         </div>
         <ul id="otherTimersList" class="timer-list"></ul>
@@ -120,7 +129,7 @@
         <!-- Jika sudah ada limit aktif -->
         <div id="siteLimitActiveBox" class="limit-card hidden">
           <div class="limit-card-header">
-            <span class="limit-title">Penggunaan Hari Ini</span>
+            <span class="limit-title" data-i18n="todayUsage">Penggunaan Hari Ini</span>
             <span id="limitStatusBadge" class="status-tag safe">Aman</span>
           </div>
 
@@ -136,16 +145,16 @@
           </div>
 
           <div class="limit-actions">
-            <button id="editCurrentLimitBtn" class="btn-link" type="button">Ubah Batas</button>
-            <button id="deleteCurrentLimitBtn" class="btn-link text-danger" type="button">Hapus</button>
+            <button id="editCurrentLimitBtn" class="btn-link" type="button" data-i18n="editLimit">Ubah Batas</button>
+            <button id="deleteCurrentLimitBtn" class="btn-link text-danger" type="button" data-i18n="deleteLimit">Hapus</button>
           </div>
         </div>
 
         <!-- Form Setup Limit -->
         <div id="siteLimitFormBox" class="panel-section">
           <div class="section-text">
-            <span class="text-heading">Batas Harian Situs Ini</span>
-            <span class="text-desc">Otomatis jeda saat beralih ke tab atau jendela lain.</span>
+            <span class="text-heading" data-i18n="dailyLimitTitle">Batas Harian Situs Ini</span>
+            <span class="text-desc" data-i18n="dailyLimitDesc">Otomatis jeda saat beralih ke tab atau jendela lain.</span>
           </div>
 
           <div class="preset-row" id="autoChips">
@@ -156,14 +165,14 @@
           </div>
 
           <div class="input-card">
-            <label for="autoMinutesInput" class="input-card-label">Batas harian</label>
+            <label for="autoMinutesInput" class="input-card-label" data-i18n="maxPerDay">Batas harian</label>
             <div class="counter-field">
               <input type="number" id="autoMinutesInput" min="1" max="1440" value="30" aria-label="Batas harian dalam menit">
-              <span class="counter-unit">menit</span>
+              <span class="counter-unit" data-i18n="minutesUnit">menit</span>
             </div>
           </div>
 
-          <button id="saveAutoLimitBtn" class="btn-primary" type="button">
+          <button id="saveAutoLimitBtn" class="btn-primary" type="button" data-i18n="setLimitBtn">
             Pasang Batas Harian
           </button>
         </div>
@@ -172,15 +181,15 @@
       <!-- Monitored list -->
       <section class="sub-section">
         <div class="sub-header">
-          <span>Daftar Batas Website</span>
+          <span data-i18n="monitoredListTitle">Daftar Batas Website</span>
           <span id="allLimitsCount" class="sub-count">0</span>
         </div>
 
         <ul id="allLimitsList" class="limit-list"></ul>
 
         <div id="emptyLimitsMsg" class="empty-box">
-          <p class="empty-main">Belum ada website yang dibatasi.</p>
-          <p class="empty-sub">Atur batas waktu untuk membatasi media sosial dan situs yang memicu distraksi.</p>
+          <p class="empty-main" data-i18n="emptyLimitsMain">Belum ada website yang dibatasi.</p>
+          <p class="empty-sub" data-i18n="emptyLimitsSub">Atur batas waktu untuk membatasi media sosial dan situs yang memicu distraksi.</p>
         </div>
       </section>
     </main>

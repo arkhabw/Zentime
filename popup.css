@@ -164,6 +164,72 @@ body {
   color: var(--text-muted);
 }
 
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Language Slider Toggle Switch (Anti-Slop Craftsmanship) */
+.lang-slider {
+  position: relative;
+  display: inline-flex;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+  height: 26px;
+  width: 52px;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+.lang-slider-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 22px;
+  height: 20px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-strong);
+  border-radius: 2px;
+  z-index: 1;
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+.lang-slider[data-current="en"] .lang-slider-thumb {
+  transform: translateX(24px);
+}
+
+.lang-btn {
+  position: relative;
+  z-index: 2;
+  width: 23px;
+  height: 20px;
+  background: transparent;
+  border: none;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text-faint);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease;
+  user-select: none;
+  padding: 0;
+}
+
+.lang-btn:hover {
+  color: var(--text-main);
+}
+
+.lang-btn.active {
+  color: var(--text-main);
+}
+
 .theme-toggle {
   background: var(--bg-surface);
   border: 1px solid var(--border);

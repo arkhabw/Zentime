@@ -40,6 +40,10 @@ Built strictly under **Manifest V3** with zero external dependencies, Zentime ru
 - **Dual-Theme Support**: Seamlessly toggles between high-contrast Matte Light and Obsidian Dark modes.
 - **System Preference Aware**: Automatically adapts to your operating system's color scheme (`prefers-color-scheme`).
 
+### 🌐 Bilingual Support (English & Indonesian)
+- **Instant Language Slider**: Switch on the fly between English (`EN`) and Indonesian (`ID`) via a smooth, tactile header slider switch.
+- **Persistent Localization**: Automatically remembers your preferred language and localizes the entire interface, status indicators, and desktop notifications.
+
 ---
 
 ## Design Philosophy
