@@ -236,6 +236,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Event listener on Resume / Skip Break
     pomoResumeBtn.addEventListener("click", async () => {
+      pomoResumeBtn.disabled = true;
       const store = await chrome.storage.local.get("pomodoroSessions");
       const session = store.pomodoroSessions?.[blockedDomain];
 
@@ -243,7 +244,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         ? session.cycle
         : (session ? (session.cycle >= 4 ? 1 : session.cycle + 1) : 1);
 
-      chrome.runtime.sendMessage({
+      await chrome.runtime.sendMessage({
         type: "START_POMODORO",
         domain: blockedDomain,
         focusMinutes: session ? session.focusMinutes : 25,
@@ -252,10 +253,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         cycle: nextCycle,
       });
 
-      // Redirect back to website
-      const targetUrl = blockedDomain.startsWith("http://") || blockedDomain.startsWith("https://")
+      // Redirect kembali ke website (atau URL halaman asal jika ada)
+      const origUrl = urlParams.get("originalUrl");
+      const defaultUrl = blockedDomain.startsWith("http://") || blockedDomain.startsWith("https://")
         ? blockedDomain
         : `https://${blockedDomain}`;
+      const targetUrl = (origUrl && origUrl.startsWith("http")) ? origUrl : defaultUrl;
       window.location.href = targetUrl;
     });
 
@@ -302,10 +305,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       until: snoozeTime,
     });
 
-    // Redirect user back to the website
-    const targetUrl = blockedDomain.startsWith("http://") || blockedDomain.startsWith("https://")
+    // Redirect user back to the website (or original page URL)
+    const origUrl = urlParams.get("originalUrl");
+    const defaultUrl = blockedDomain.startsWith("http://") || blockedDomain.startsWith("https://")
       ? blockedDomain
       : `https://${blockedDomain}`;
+    const targetUrl = (origUrl && origUrl.startsWith("http")) ? origUrl : defaultUrl;
     window.location.href = targetUrl;
   });
 });

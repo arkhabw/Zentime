@@ -474,6 +474,27 @@ async function detectCurrentSite() {
     }
 
     const url = new URL(tab.url);
+
+    // Deteksi jika tab saat ini sedang membuka halaman istirahat blocked.html
+    if (url.protocol === "chrome-extension:" && url.pathname.includes("blocked.html")) {
+      const domParam = url.searchParams.get("domain");
+      if (domParam) {
+        currentDomain = domParam;
+        currentDomainEl.textContent = currentDomain;
+        unsupportedWarning.classList.add("hidden");
+
+        siteFavicon.src = `https://www.google.com/s2/favicons?domain=${currentDomain}&sz=32`;
+        siteFavicon.onerror = () => {
+          siteFavicon.src = "icons/icon48.png";
+        };
+
+        startTimerBtn.disabled = false;
+        startPomoBtn.disabled = false;
+        saveAutoLimitBtn.disabled = false;
+        return;
+      }
+    }
+
     if (!url.protocol.startsWith("http")) {
       setUnsupported(t("internalPage"));
       return;
@@ -489,6 +510,7 @@ async function detectCurrentSite() {
     };
 
     startTimerBtn.disabled = false;
+    startPomoBtn.disabled = false;
     saveAutoLimitBtn.disabled = false;
   } catch {
     setUnsupported(t("unsupportedPage"));
@@ -501,6 +523,7 @@ function setUnsupported(label) {
   siteFavicon.src = "icons/icon48.png";
   unsupportedWarning.classList.remove("hidden");
   startTimerBtn.disabled = true;
+  startPomoBtn.disabled = true;
   saveAutoLimitBtn.disabled = true;
 }
 

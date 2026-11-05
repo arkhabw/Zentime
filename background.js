@@ -72,17 +72,10 @@ async function playGentleChime() {
 }
 
 // -------------------------------------------------------------
-// 2. Redirect Tab ke Layar Penjedaan (blocked.html)
+// 2. Redirect Tab ke Layar Penjedaan (blocked.html) & Pemulihan Tab
 // -------------------------------------------------------------
 async function redirectToBlockPage(domain, reason = "limit", extraQuery = "") {
   try {
-    let queryStr = `domain=${encodeURIComponent(domain)}&mode=${encodeURIComponent(reason)}`;
-    if (extraQuery) {
-      queryStr += `&${extraQuery}`;
-    }
-    const blockedUrl = chrome.runtime.getURL(`blocked.html?${queryStr}`);
-
-    // Dapatkan semua tab yang sedang membuka domain ini (termasuk www. atau tab latar belakang)
     const tabs = await chrome.tabs.query({});
     for (const tab of tabs) {
       if (tab.id) {
@@ -90,6 +83,11 @@ async function redirectToBlockPage(domain, reason = "limit", extraQuery = "") {
         if (rawUrl && !rawUrl.includes("blocked.html")) {
           const tabDomain = getDomainFromUrl(rawUrl);
           if (matchDomain(tabDomain, domain)) {
+            let queryStr = `domain=${encodeURIComponent(domain)}&mode=${encodeURIComponent(reason)}&originalUrl=${encodeURIComponent(rawUrl)}`;
+            if (extraQuery) {
+              queryStr += `&${extraQuery}`;
+            }
+            const blockedUrl = chrome.runtime.getURL(`blocked.html?${queryStr}`);
             chrome.tabs.update(tab.id, { url: blockedUrl });
           }
         }
@@ -97,6 +95,37 @@ async function redirectToBlockPage(domain, reason = "limit", extraQuery = "") {
     }
   } catch (err) {
     console.warn("Redirect to block page error:", err);
+  }
+}
+
+// Helper: Memulihkan tab yang sedang diblokir (blocked.html) kembali ke website aslinya
+async function unblockAndRestoreTabs(domain) {
+  try {
+    const tabs = await chrome.tabs.query({});
+    const defaultUrl = domain.startsWith("http://") || domain.startsWith("https://")
+      ? domain
+      : `https://${domain}`;
+
+    for (const tab of tabs) {
+      if (tab.id) {
+        const rawUrl = tab.url || tab.pendingUrl || "";
+        if (rawUrl && rawUrl.includes("blocked.html")) {
+          try {
+            const parsed = new URL(rawUrl);
+            const domParam = parsed.searchParams.get("domain");
+            if (domParam && matchDomain(domParam, domain)) {
+              const origUrl = parsed.searchParams.get("originalUrl");
+              const destUrl = (origUrl && origUrl.startsWith("http")) ? origUrl : defaultUrl;
+              chrome.tabs.update(tab.id, { url: destUrl });
+            }
+          } catch {
+            // Abaikan kesalahan URL
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.warn("Unblock and restore tabs error:", err);
   }
 }
 
@@ -504,6 +533,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
       await chrome.storage.local.set({ pomodoroSessions });
       await chrome.alarms.create(`pomo_focus_${domain}`, { delayInMinutes: focusMinutes });
+      await unblockAndRestoreTabs(domain);
       await updateBadge();
       sendResponse({ success: true });
     })();
@@ -538,6 +568,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           session.endTime = endTime;
           await chrome.storage.local.set({ pomodoroSessions });
           await chrome.alarms.create(`pomo_focus_${domain}`, { delayInMinutes: session.focusMinutes });
+          await unblockAndRestoreTabs(domain);
         }
         await updateBadge();
       }
@@ -552,6 +583,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       const { pomodoroSessions = {} } = await chrome.storage.local.get("pomodoroSessions");
       delete pomodoroSessions[domain];
       await chrome.storage.local.set({ pomodoroSessions });
+      await unblockAndRestoreTabs(domain);
       await updateBadge();
       sendResponse({ success: true });
     })();
