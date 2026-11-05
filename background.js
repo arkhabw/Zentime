@@ -76,6 +76,9 @@ async function playGentleChime() {
 // -------------------------------------------------------------
 async function redirectToBlockPage(domain, reason = "limit", extraQuery = "") {
   try {
+    const { pomodoroSessions = {} } = await chrome.storage.local.get("pomodoroSessions");
+    const session = pomodoroSessions[domain];
+
     const tabs = await chrome.tabs.query({});
     for (const tab of tabs) {
       if (tab.id) {
@@ -83,6 +86,12 @@ async function redirectToBlockPage(domain, reason = "limit", extraQuery = "") {
         if (rawUrl && !rawUrl.includes("blocked.html")) {
           const tabDomain = getDomainFromUrl(rawUrl);
           if (matchDomain(tabDomain, domain)) {
+            // Simpan URL asli ke sesi Pomodoro jika ada
+            if (session && rawUrl.startsWith("http")) {
+              session.originalUrl = rawUrl;
+              await chrome.storage.local.set({ pomodoroSessions });
+            }
+
             let queryStr = `domain=${encodeURIComponent(domain)}&mode=${encodeURIComponent(reason)}&originalUrl=${encodeURIComponent(rawUrl)}`;
             if (extraQuery) {
               queryStr += `&${extraQuery}`;
@@ -101,6 +110,9 @@ async function redirectToBlockPage(domain, reason = "limit", extraQuery = "") {
 // Helper: Memulihkan tab yang sedang diblokir (blocked.html) kembali ke website aslinya
 async function unblockAndRestoreTabs(domain) {
   try {
+    const { pomodoroSessions = {} } = await chrome.storage.local.get("pomodoroSessions");
+    const session = pomodoroSessions[domain];
+
     const tabs = await chrome.tabs.query({});
     const defaultUrl = domain.startsWith("http://") || domain.startsWith("https://")
       ? domain
@@ -114,8 +126,10 @@ async function unblockAndRestoreTabs(domain) {
             const parsed = new URL(rawUrl);
             const domParam = parsed.searchParams.get("domain");
             if (domParam && matchDomain(domParam, domain)) {
-              const origUrl = parsed.searchParams.get("originalUrl");
-              const destUrl = (origUrl && origUrl.startsWith("http")) ? origUrl : defaultUrl;
+              const origParam = parsed.searchParams.get("originalUrl");
+              const destUrl = (origParam && origParam.startsWith("http"))
+                ? origParam
+                : (session && session.originalUrl && session.originalUrl.startsWith("http") ? session.originalUrl : defaultUrl);
               chrome.tabs.update(tab.id, { url: destUrl });
             }
           } catch {
@@ -512,8 +526,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   } else if (message.type === "START_POMODORO") {
     (async () => {
-      const { domain, focusMinutes, breakMinutes, longBreakMinutes, cycle } = message;
+      const { domain, focusMinutes, breakMinutes, longBreakMinutes, cycle, originalUrl } = message;
       const { pomodoroSessions = {} } = await chrome.storage.local.get("pomodoroSessions");
+      const prevSession = pomodoroSessions[domain];
       const startTime = Date.now();
       const endTime = startTime + focusMinutes * 60 * 1000;
 
@@ -529,6 +544,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         longBreakMinutes: longBreakMinutes || 15,
         startTime,
         endTime,
+        originalUrl: (originalUrl && originalUrl.startsWith("http")) ? originalUrl : (prevSession?.originalUrl || ""),
       };
 
       await chrome.storage.local.set({ pomodoroSessions });
@@ -540,11 +556,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   } else if (message.type === "SKIP_POMODORO_PHASE") {
     (async () => {
-      const { domain } = message;
+      const { domain, originalUrl } = message;
       const { pomodoroSessions = {} } = await chrome.storage.local.get("pomodoroSessions");
       const session = pomodoroSessions[domain];
 
       if (session) {
+        if (originalUrl && originalUrl.startsWith("http")) {
+          session.originalUrl = originalUrl;
+        }
         if (session.phase === "focus") {
           await chrome.alarms.clear(`pomo_focus_${domain}`);
           const isLong = (session.cycle % 4 === 0);

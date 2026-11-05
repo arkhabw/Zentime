@@ -25,6 +25,7 @@ const I18N = {
   id: {
     pageTitle: mode === "pomodoro" ? "Zentime - Istirahat Pomodoro" : (mode === "timer" ? "Zentime - Sesi Selesai" : "Zentime - Saatnya Beristirahat"),
     quotaBadge: mode === "pomodoro" ? "🍅 Istirahat Pomodoro" : (mode === "timer" ? "Sesi Fokus Selesai" : "Batas Harian Tercapai"),
+    pomoBadgeCycle: (cycle) => `🍅 Istirahat Pomodoro • Siklus ${cycle}/4`,
     title: "Saatnya Beristirahat",
     desc: mode === "pomodoro"
       ? `Sesi fokus untuk <strong>${blockedDomain}</strong> selesai. Luangkan waktu sejenak untuk rehat dari layar.`
@@ -48,6 +49,7 @@ const I18N = {
   en: {
     pageTitle: mode === "pomodoro" ? "Zentime - Pomodoro Break" : (mode === "timer" ? "Zentime - Session Complete" : "Zentime - Time for a Break"),
     quotaBadge: mode === "pomodoro" ? "🍅 Pomodoro Break" : (mode === "timer" ? "Focus Session Ended" : "Daily Limit Reached"),
+    pomoBadgeCycle: (cycle) => `🍅 Pomodoro Break • Cycle ${cycle}/4`,
     title: "Time for a Mindful Break",
     desc: mode === "pomodoro"
       ? `Focus session for <strong>${blockedDomain}</strong> is complete. Take a mindful break away from the screen.`
@@ -109,7 +111,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   const t = I18N[lang] || I18N.id;
   document.title = t.pageTitle;
   document.getElementById("blockedDomain").textContent = blockedDomain;
-  document.getElementById("quotaBadge").textContent = t.quotaBadge;
+  const initialCycle = urlParams.get("cycle") || "1";
+  document.getElementById("quotaBadge").textContent = (mode === "pomodoro" && t.pomoBadgeCycle)
+    ? t.pomoBadgeCycle(initialCycle)
+    : t.quotaBadge;
   document.getElementById("blockedTitle").textContent = t.title;
   document.getElementById("blockedDesc").innerHTML = t.desc;
   document.getElementById("statSpentLbl").textContent = t.statSpentLbl;
@@ -216,7 +221,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       pomoBreakFill.style.width = `${pct}%`;
 
       if (session.phase === "break") {
-        document.getElementById("quotaBadge").textContent = `🍅 Istirahat Pomodoro • Siklus ${session.cycle}/4`;
+        document.getElementById("quotaBadge").textContent = t.pomoBadgeCycle
+          ? t.pomoBadgeCycle(session.cycle)
+          : `${t.quotaBadge} • ${session.cycle}/4`;
         pomoResumeBtn.textContent = t.pomoResumeBtn;
       }
 
@@ -258,7 +265,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       const defaultUrl = blockedDomain.startsWith("http://") || blockedDomain.startsWith("https://")
         ? blockedDomain
         : `https://${blockedDomain}`;
-      const targetUrl = (origUrl && origUrl.startsWith("http")) ? origUrl : defaultUrl;
+      const targetUrl = (origUrl && origUrl.startsWith("http"))
+        ? origUrl
+        : (session && session.originalUrl && session.originalUrl.startsWith("http") ? session.originalUrl : defaultUrl);
       window.location.href = targetUrl;
     });
 

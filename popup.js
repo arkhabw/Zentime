@@ -771,6 +771,18 @@ async function renderPomodoro() {
 
 async function handleStartPomo() {
   if (!currentDomain) return;
+  startPomoBtn.disabled = true;
+
+  let originalUrl = "";
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (tab && tab.url && tab.url.startsWith("http")) {
+      originalUrl = tab.url;
+    }
+  } catch {
+    // Abaikan
+  }
+
   chrome.runtime.sendMessage({
     type: "START_POMODORO",
     domain: currentDomain,
@@ -778,17 +790,38 @@ async function handleStartPomo() {
     breakMinutes: currentPomoPreset.break,
     longBreakMinutes: 15,
     cycle: 1,
+    originalUrl,
   }, async () => {
+    startPomoBtn.disabled = false;
     await refreshUI();
   });
 }
 
 async function handleSkipPomoPhase() {
   if (!currentDomain) return;
+  skipPomoPhaseBtn.disabled = true;
+
+  let originalUrl = "";
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (tab && tab.url) {
+      if (tab.url.startsWith("http")) {
+        originalUrl = tab.url;
+      } else if (tab.url.includes("blocked.html")) {
+        const parsed = new URL(tab.url);
+        originalUrl = parsed.searchParams.get("originalUrl") || "";
+      }
+    }
+  } catch {
+    // Abaikan
+  }
+
   chrome.runtime.sendMessage({
     type: "SKIP_POMODORO_PHASE",
     domain: currentDomain,
+    originalUrl,
   }, async () => {
+    skipPomoPhaseBtn.disabled = false;
     await refreshUI();
   });
 }
