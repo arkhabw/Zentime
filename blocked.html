@@ -29,8 +29,20 @@
         Kamu telah menggunakan seluruh alokasi waktu untuk situs ini hari ini. Luangkan waktu sejenak untuk rehat sejenak dari layar.
       </p>
 
+      <!-- Pomodoro Break Box (Hanya aktif saat mode === 'pomodoro') -->
+      <div id="pomoBreakBox" class="pomo-break-box hidden">
+        <div class="pomo-break-digits" id="pomoBreakCountdown">05:00</div>
+        <div class="pomo-break-track">
+          <div class="pomo-break-fill" id="pomoBreakFill"></div>
+        </div>
+        <div class="mindful-tip-box" id="mindfulTipBox">
+          <span class="tip-icon">💧</span>
+          <span class="tip-text" id="mindfulTipText">Minum segelas air putih untuk menjaga hidrasi tubuhmu.</span>
+        </div>
+      </div>
+
       <!-- Usage Stat Card -->
-      <div class="usage-stat-card">
+      <div class="usage-stat-card" id="usageStatCard">
         <div class="stat-col">
           <span class="stat-lbl" id="statSpentLbl">Digunakan Hari Ini</span>
           <span class="stat-val" id="statSpentVal">--m</span>
@@ -44,6 +56,9 @@
 
       <!-- Actions -->
       <div class="blocked-actions">
+        <button id="pomoResumeBtn" class="btn-primary hidden" type="button">
+          Lewati Istirahat & Lanjut Fokus
+        </button>
         <button id="closeTabBtn" class="btn-primary" type="button">
           Tutup Tab Ini
         </button>

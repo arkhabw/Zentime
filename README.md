@@ -21,12 +21,19 @@ Built strictly under **Manifest V3** with zero external dependencies, Zentime ru
 
 ### ⏱️ Mode 1: Manual Focus Timer
 - **Instant Website Countdown**: Target specific websites with a timer (e.g., 25 minutes on GitHub or Docs).
-- **Quick Presets**: Single-click presets for `15m`, `25m` (Pomodoro), `45m` (Deep Work), and `60m`.
+- **Quick Presets**: Single-click presets for `15m`, `25m`, `45m`, and `60m`.
 - **Custom Stepper**: Adjust duration up or down in 5-minute increments or input any custom minute count.
 - **Precision Countdown**: Large, high-contrast monospace countdown with a linear remaining-time progress bar.
 - **Multi-Site Monitor**: Track multiple running timers across different websites simultaneously.
 
-### 📊 Mode 2: Daily Screen Time Limits & Mindful Blocker
+### 🍅 Mode 2: Pomodoro Cycle Tracker & Mindful Breaks
+- **Structured Focus & Break Cycles**: Classic 25/5m, Deep Work 50/10m, or Sprint 15/3m sessions with automatic 15-minute long breaks after 4 cycles.
+- **Apple HIG Cycle Indicator**: Clean 4-dot visual cycle progress tracker (`● ○ ○ ○`).
+- **Automated Mindful Break Redirection**: When a focus session finishes, tabs automatically transition to a serene break screen with a live break countdown and calming breathing animations.
+- **Mindful Wellness Prompts**: Rotating health and posture tips during breaks (e.g., 20-20-20 eye rest rule, hydration, deep breathing).
+- **One-Click Phase Progression**: Skip breaks early or start the next cycle seamlessly.
+
+### 📊 Mode 3: Daily Screen Time Limits & Mindful Blocker
 - **Real-Time Active-Tab Tracking**: Second-by-second precision monitoring when actively focused; automatically pauses the moment you switch tabs or minimize the browser.
 - **Configurable Daily Quotas**: Set allowance per website (e.g., 30 minutes on `youtube.com`).
 - **Mindful Site Blocker (`blocked.html`)**: Automatically redirects to an aesthetic Apple HIG-styled "Take a Breath" screen when quota is exceeded.

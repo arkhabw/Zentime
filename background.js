@@ -74,11 +74,13 @@ async function playGentleChime() {
 // -------------------------------------------------------------
 // 2. Redirect Tab ke Layar Penjedaan (blocked.html)
 // -------------------------------------------------------------
-async function redirectToBlockPage(domain, reason = "limit") {
+async function redirectToBlockPage(domain, reason = "limit", extraQuery = "") {
   try {
-    const blockedUrl = chrome.runtime.getURL(
-      `blocked.html?domain=${encodeURIComponent(domain)}&mode=${encodeURIComponent(reason)}`
-    );
+    let queryStr = `domain=${encodeURIComponent(domain)}&mode=${encodeURIComponent(reason)}`;
+    if (extraQuery) {
+      queryStr += `&${extraQuery}`;
+    }
+    const blockedUrl = chrome.runtime.getURL(`blocked.html?${queryStr}`);
 
     // Dapatkan semua tab yang sedang membuka domain ini (termasuk www. atau tab latar belakang)
     const tabs = await chrome.tabs.query({});
@@ -306,6 +308,93 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     await redirectToBlockPage(domain, "timer");
 
     await updateBadge();
+  } else if (alarm.name.startsWith("pomo_focus_")) {
+    const domain = alarm.name.replace("pomo_focus_", "");
+    const { pomodoroSessions = {} } = await chrome.storage.local.get("pomodoroSessions");
+    const session = pomodoroSessions[domain];
+
+    if (session) {
+      const isLongBreak = (session.cycle % 4 === 0);
+      const breakMins = isLongBreak ? (session.longBreakMinutes || 15) : (session.breakMinutes || 5);
+
+      session.phase = "break";
+      session.startTime = Date.now();
+      session.endTime = Date.now() + breakMins * 60 * 1000;
+      session.currentBreakMinutes = breakMins;
+      session.isLongBreak = isLongBreak;
+
+      pomodoroSessions[domain] = session;
+      await chrome.storage.local.set({ pomodoroSessions });
+
+      // 1. Mainkan lonceng lembut ~10 detik
+      await playGentleChime();
+
+      // 2. Notifikasi desktop
+      const { preferredLanguage = "id" } = await chrome.storage.local.get("preferredLanguage");
+      const title = preferredLanguage === "en" ? "🍅 Pomodoro Focus Complete!" : "🍅 Sesi Fokus Selesai!";
+      const message = preferredLanguage === "en"
+        ? `Cycle ${session.cycle}/4 complete! Take a ${breakMins}-minute break to recharge.`
+        : `Siklus ${session.cycle}/4 selesai! Saatnya istirahat selama ${breakMins} menit untuk menyegarkan pikiran.`;
+
+      chrome.notifications.create(`pomo_${domain}_${Date.now()}`, {
+        type: "basic",
+        iconUrl: "icons/icon128.png",
+        title: title,
+        message: message,
+        priority: 2,
+        requireInteraction: true,
+      });
+
+      // 3. Pasang alarm waktu istirahat
+      await chrome.alarms.create(`pomo_break_${domain}`, { delayInMinutes: breakMins });
+
+      // 4. Redirect tab ke layar istirahat
+      await redirectToBlockPage(domain, "pomodoro", `cycle=${session.cycle}&breakMinutes=${breakMins}`);
+
+      await updateBadge();
+    }
+  } else if (alarm.name.startsWith("pomo_break_")) {
+    const domain = alarm.name.replace("pomo_break_", "");
+    const { pomodoroSessions = {} } = await chrome.storage.local.get("pomodoroSessions");
+    const session = pomodoroSessions[domain];
+
+    if (session) {
+      const nextCycle = (session.cycle >= 4) ? 1 : session.cycle + 1;
+      session.phase = "break_ended";
+      session.cycle = nextCycle;
+      session.startTime = Date.now();
+      session.endTime = Date.now();
+
+      pomodoroSessions[domain] = session;
+      await chrome.storage.local.set({ pomodoroSessions });
+
+      // 1. Mainkan lonceng lembut
+      await playGentleChime();
+
+      // 2. Notifikasi desktop
+      const { preferredLanguage = "id" } = await chrome.storage.local.get("preferredLanguage");
+      const title = preferredLanguage === "en" ? "☕ Break Complete!" : "☕ Waktu Istirahat Selesai!";
+      const message = preferredLanguage === "en"
+        ? `Break complete! Ready to start focus cycle ${nextCycle}/4?`
+        : `Waktu istirahat telah selesai. Siap lanjut ke siklus fokus ke-${nextCycle}/4?`;
+
+      chrome.notifications.create(`pomo_break_${domain}_${Date.now()}`, {
+        type: "basic",
+        iconUrl: "icons/icon128.png",
+        title: title,
+        message: message,
+        priority: 2,
+        requireInteraction: true,
+      });
+
+      chrome.runtime.sendMessage({
+        type: "POMODORO_BREAK_ENDED",
+        domain,
+        nextCycle,
+      }).catch(() => {});
+
+      await updateBadge();
+    }
   } else if (alarm.name === "tracker_heartbeat") {
     await processTimeElapsed();
   }
@@ -324,8 +413,20 @@ async function updateBadge() {
       return;
     }
 
-    const { manualTimers = {}, autoLimits = {}, dailyUsage = {} } =
-      await chrome.storage.local.get(["manualTimers", "autoLimits", "dailyUsage"]);
+    const { manualTimers = {}, autoLimits = {}, dailyUsage = {}, pomodoroSessions = {} } =
+      await chrome.storage.local.get(["manualTimers", "autoLimits", "dailyUsage", "pomodoroSessions"]);
+
+    // Mode Pomodoro
+    const pomo = pomodoroSessions[domain];
+    if (pomo && (pomo.phase === "focus" || pomo.phase === "break") && pomo.endTime > Date.now()) {
+      const remainingMs = pomo.endTime - Date.now();
+      const remainingMins = Math.ceil(remainingMs / 60000);
+      chrome.action.setBadgeBackgroundColor({
+        color: pomo.phase === "focus" ? "#D70015" : "#248A3D",
+      });
+      chrome.action.setBadgeText({ text: remainingMins <= 1 ? "<1m" : `${remainingMins}m` });
+      return;
+    }
 
     // Mode 1: Timer Manual
     const manual = manualTimers[domain];
@@ -379,6 +480,81 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   } else if (message.type === "SNOOZE_SITE") {
     sendResponse({ success: true });
+    return true;
+  } else if (message.type === "START_POMODORO") {
+    (async () => {
+      const { domain, focusMinutes, breakMinutes, longBreakMinutes, cycle } = message;
+      const { pomodoroSessions = {} } = await chrome.storage.local.get("pomodoroSessions");
+      const startTime = Date.now();
+      const endTime = startTime + focusMinutes * 60 * 1000;
+
+      await chrome.alarms.clear(`pomo_focus_${domain}`);
+      await chrome.alarms.clear(`pomo_break_${domain}`);
+
+      pomodoroSessions[domain] = {
+        phase: "focus",
+        cycle: cycle || 1,
+        totalCycles: 4,
+        focusMinutes: focusMinutes || 25,
+        breakMinutes: breakMinutes || 5,
+        longBreakMinutes: longBreakMinutes || 15,
+        startTime,
+        endTime,
+      };
+
+      await chrome.storage.local.set({ pomodoroSessions });
+      await chrome.alarms.create(`pomo_focus_${domain}`, { delayInMinutes: focusMinutes });
+      await updateBadge();
+      sendResponse({ success: true });
+    })();
+    return true;
+  } else if (message.type === "SKIP_POMODORO_PHASE") {
+    (async () => {
+      const { domain } = message;
+      const { pomodoroSessions = {} } = await chrome.storage.local.get("pomodoroSessions");
+      const session = pomodoroSessions[domain];
+
+      if (session) {
+        if (session.phase === "focus") {
+          await chrome.alarms.clear(`pomo_focus_${domain}`);
+          const isLong = (session.cycle % 4 === 0);
+          const breakMins = isLong ? (session.longBreakMinutes || 15) : (session.breakMinutes || 5);
+          session.phase = "break";
+          session.startTime = Date.now();
+          session.endTime = Date.now() + breakMins * 60 * 1000;
+          session.currentBreakMinutes = breakMins;
+          session.isLongBreak = isLong;
+          await chrome.storage.local.set({ pomodoroSessions });
+          await chrome.alarms.create(`pomo_break_${domain}`, { delayInMinutes: breakMins });
+          await redirectToBlockPage(domain, "pomodoro", `cycle=${session.cycle}&breakMinutes=${breakMins}`);
+        } else {
+          await chrome.alarms.clear(`pomo_break_${domain}`);
+          const nextCycle = (session.cycle >= 4) ? 1 : session.cycle + 1;
+          const startTime = Date.now();
+          const endTime = startTime + session.focusMinutes * 60 * 1000;
+          session.phase = "focus";
+          session.cycle = nextCycle;
+          session.startTime = startTime;
+          session.endTime = endTime;
+          await chrome.storage.local.set({ pomodoroSessions });
+          await chrome.alarms.create(`pomo_focus_${domain}`, { delayInMinutes: session.focusMinutes });
+        }
+        await updateBadge();
+      }
+      sendResponse({ success: true });
+    })();
+    return true;
+  } else if (message.type === "CANCEL_POMODORO") {
+    (async () => {
+      const { domain } = message;
+      await chrome.alarms.clear(`pomo_focus_${domain}`);
+      await chrome.alarms.clear(`pomo_break_${domain}`);
+      const { pomodoroSessions = {} } = await chrome.storage.local.get("pomodoroSessions");
+      delete pomodoroSessions[domain];
+      await chrome.storage.local.set({ pomodoroSessions });
+      await updateBadge();
+      sendResponse({ success: true });
+    })();
     return true;
   }
   return true;

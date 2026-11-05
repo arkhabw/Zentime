@@ -1,37 +1,68 @@
-// blocked.js - Controller for Mindful Interstitial Block Screen
+// blocked.js - Controller for Mindful Interstitial Block Screen (Supports Limits, Timers & Pomodoro)
 
 const urlParams = new URLSearchParams(window.location.search);
 const blockedDomain = urlParams.get("domain") || "Website";
-const mode = urlParams.get("mode") || "limit"; // "timer" | "limit"
+const mode = urlParams.get("mode") || "limit"; // "timer" | "limit" | "pomodoro"
+
+const MINDFUL_TIPS = {
+  id: [
+    { icon: "💧", text: "Minum segelas air putih untuk menjaga hidrasi dan fokus tubuhmu." },
+    { icon: "👀", text: "Aturan 20-20-20: Tatap objek berjarak 6 meter selama 20 detik untuk mengistirahatkan mata." },
+    { icon: "🧘", text: "Tarik napas perlahan 4 detik, tahan 4 detik, lalu hembuskan perlahan 4 detik." },
+    { icon: "🚶", text: "Berdiri sejenak dan regangkan pundak, leher, serta punggungmu dari posisi duduk." },
+    { icon: "🌿", text: "Pejamkan mata sejenak untuk mengistirahatkan saraf mata dari paparan cahaya layar." },
+  ],
+  en: [
+    { icon: "💧", text: "Drink a glass of water to keep your body hydrated and refreshed." },
+    { icon: "👀", text: "20-20-20 Rule: Look at an object 20 feet away for 20 seconds to relax your eyes." },
+    { icon: "🧘", text: "Inhale slowly for 4 seconds, hold for 4 seconds, then exhale for 4 seconds." },
+    { icon: "🚶", text: "Stand up and gently stretch your shoulders, neck, and back." },
+    { icon: "🌿", text: "Rest your eyes for a brief moment away from bright digital displays." },
+  ],
+};
 
 const I18N = {
   id: {
-    pageTitle: mode === "timer" ? "Zentime - Sesi Selesai" : "Zentime - Saatnya Beristirahat",
-    quotaBadge: mode === "timer" ? "Sesi Fokus Selesai" : "Batas Harian Tercapai",
+    pageTitle: mode === "pomodoro" ? "Zentime - Istirahat Pomodoro" : (mode === "timer" ? "Zentime - Sesi Selesai" : "Zentime - Saatnya Beristirahat"),
+    quotaBadge: mode === "pomodoro" ? "🍅 Istirahat Pomodoro" : (mode === "timer" ? "Sesi Fokus Selesai" : "Batas Harian Tercapai"),
     title: "Saatnya Beristirahat",
-    desc: mode === "timer"
-      ? `Waktu fokus kamu untuk <strong>${blockedDomain}</strong> telah selesai. Luangkan waktu sejenak untuk rehat dari layar.`
-      : `Kamu telah mencapai batas harian untuk <strong>${blockedDomain}</strong>. Luangkan waktu sejenak untuk rehat sejenak dari layar atau beralih ke hal lain.`,
+    desc: mode === "pomodoro"
+      ? `Sesi fokus untuk <strong>${blockedDomain}</strong> selesai. Luangkan waktu sejenak untuk rehat dari layar.`
+      : (mode === "timer"
+        ? `Waktu fokus kamu untuk <strong>${blockedDomain}</strong> telah selesai. Luangkan waktu sejenak untuk rehat dari layar.`
+        : `Kamu telah mencapai batas harian untuk <strong>${blockedDomain}</strong>. Luangkan waktu sejenak untuk rehat sejenak dari layar atau beralih ke hal lain.`),
     statSpentLbl: "Digunakan Hari Ini",
     statLimitLbl: mode === "timer" ? "Status Sesi" : "Batas Maksimal",
     closeTabBtn: "Tutup Tab Ini",
     snoozeBtn: mode === "timer" ? "+5 Menit Tambahan" : "Perpanjang 5 Menit Darurat",
+    pomoResumeBtn: "Lewati Istirahat & Lanjut Fokus",
+    pomoBreakCompleteBadge: "☕ Istirahat Selesai",
+    pomoBreakCompleteTitle: "Pikiranmu Sudah Segar",
+    pomoBreakCompleteDesc: "Waktu istirahat telah selesai. Siap untuk memulai siklus fokus berikutnya?",
+    pomoStartNextBtn: "Mulai Sesi Fokus Berikutnya",
     footerNote: "Kelola waktu fokus & batas harian di menu ekstensi",
     timeMin: "m",
     timeSec: "d",
     statusComplete: "Selesai",
   },
   en: {
-    pageTitle: mode === "timer" ? "Zentime - Session Complete" : "Zentime - Time for a Break",
-    quotaBadge: mode === "timer" ? "Focus Session Ended" : "Daily Limit Reached",
+    pageTitle: mode === "pomodoro" ? "Zentime - Pomodoro Break" : (mode === "timer" ? "Zentime - Session Complete" : "Zentime - Time for a Break"),
+    quotaBadge: mode === "pomodoro" ? "🍅 Pomodoro Break" : (mode === "timer" ? "Focus Session Ended" : "Daily Limit Reached"),
     title: "Time for a Mindful Break",
-    desc: mode === "timer"
-      ? `Your focus session for <strong>${blockedDomain}</strong> has ended. Take a moment to step back and recharge.`
-      : `You've reached your daily screen time quota for <strong>${blockedDomain}</strong>. Take a moment to step back and recharge.`,
+    desc: mode === "pomodoro"
+      ? `Focus session for <strong>${blockedDomain}</strong> is complete. Take a mindful break away from the screen.`
+      : (mode === "timer"
+        ? `Your focus session for <strong>${blockedDomain}</strong> has ended. Take a moment to step back and recharge.`
+        : `You've reached your daily screen time quota for <strong>${blockedDomain}</strong>. Take a moment to step back and recharge.`),
     statSpentLbl: "Used Today",
     statLimitLbl: mode === "timer" ? "Session Status" : "Daily Limit",
     closeTabBtn: "Close This Tab",
     snoozeBtn: mode === "timer" ? "+5m Extra Focus" : "+5m Emergency Extension",
+    pomoResumeBtn: "Skip Break & Resume Focus",
+    pomoBreakCompleteBadge: "☕ Break Complete",
+    pomoBreakCompleteTitle: "Your Mind is Refreshed",
+    pomoBreakCompleteDesc: "Your break has ended. Ready for your next focus session?",
+    pomoStartNextBtn: "Start Next Focus Session",
     footerNote: "Manage focus timer & site limits in the extension menu",
     timeMin: "m",
     timeSec: "s",
@@ -64,6 +95,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     "preferredLanguage",
     "autoLimits",
     "dailyUsage",
+    "pomodoroSessions",
   ]);
 
   const lang = data.preferredLanguage || (navigator.language.startsWith("id") ? "id" : "en");
@@ -136,8 +168,107 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("statLimitVal").textContent = `${limitMins}${t.timeMin}`;
   }
 
-  // Action 1: Close Tab
-  document.getElementById("closeTabBtn").addEventListener("click", () => {
+  // -------------------------------------------------------------
+  // Mode Khusus: POMODORO BREAK MODE
+  // -------------------------------------------------------------
+  const pomoBreakBox = document.getElementById("pomoBreakBox");
+  const pomoBreakCountdown = document.getElementById("pomoBreakCountdown");
+  const pomoBreakFill = document.getElementById("pomoBreakFill");
+  const pomoResumeBtn = document.getElementById("pomoResumeBtn");
+  const snoozeBtn = document.getElementById("snoozeBtn");
+  const closeTabBtn = document.getElementById("closeTabBtn");
+  const usageStatCard = document.getElementById("usageStatCard");
+  const mindfulTipText = document.getElementById("mindfulTipText");
+
+  if (mode === "pomodoro") {
+    pomoBreakBox.classList.remove("hidden");
+    pomoResumeBtn.classList.remove("hidden");
+    snoozeBtn.classList.add("hidden");
+    usageStatCard.classList.add("hidden");
+    closeTabBtn.className = "btn-subtle";
+
+    // Set Random Mindful Tip
+    const tips = MINDFUL_TIPS[lang] || MINDFUL_TIPS.id;
+    const randomTip = tips[Math.floor(Math.random() * tips.length)];
+    if (randomTip) {
+      document.querySelector(".tip-icon").textContent = randomTip.icon;
+      mindfulTipText.textContent = randomTip.text;
+    }
+
+    let pomoInterval = null;
+
+    async function syncPomoBreak() {
+      const store = await chrome.storage.local.get("pomodoroSessions");
+      const session = store.pomodoroSessions?.[blockedDomain];
+
+      if (!session) return;
+
+      const now = Date.now();
+      const remainingMs = Math.max(0, session.endTime - now);
+      const totalSecs = Math.floor(remainingMs / 1000);
+      const mins = Math.floor(totalSecs / 60);
+      const secs = totalSecs % 60;
+      pomoBreakCountdown.textContent = `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+
+      const totalDuration = (session.endTime - session.startTime) || 1;
+      const elapsed = Math.max(0, now - session.startTime);
+      const pct = Math.max(0, Math.min(100, (1 - elapsed / totalDuration) * 100));
+      pomoBreakFill.style.width = `${pct}%`;
+
+      if (session.phase === "break") {
+        document.getElementById("quotaBadge").textContent = `🍅 Istirahat Pomodoro • Siklus ${session.cycle}/4`;
+        pomoResumeBtn.textContent = t.pomoResumeBtn;
+      }
+
+      if (remainingMs <= 0 || session.phase === "break_ended") {
+        clearInterval(pomoInterval);
+        document.getElementById("quotaBadge").textContent = t.pomoBreakCompleteBadge;
+        document.getElementById("blockedTitle").textContent = t.pomoBreakCompleteTitle;
+        document.getElementById("blockedDesc").innerHTML = t.pomoBreakCompleteDesc;
+        pomoBreakCountdown.textContent = "00:00";
+        pomoBreakFill.style.width = "0%";
+        pomoResumeBtn.textContent = `${t.pomoStartNextBtn} (${session.focusMinutes}m)`;
+      }
+    }
+
+    syncPomoBreak();
+    pomoInterval = setInterval(syncPomoBreak, 1000);
+
+    // Event listener on Resume / Skip Break
+    pomoResumeBtn.addEventListener("click", async () => {
+      const store = await chrome.storage.local.get("pomodoroSessions");
+      const session = store.pomodoroSessions?.[blockedDomain];
+
+      const nextCycle = (session && session.phase === "break_ended")
+        ? session.cycle
+        : (session ? (session.cycle >= 4 ? 1 : session.cycle + 1) : 1);
+
+      chrome.runtime.sendMessage({
+        type: "START_POMODORO",
+        domain: blockedDomain,
+        focusMinutes: session ? session.focusMinutes : 25,
+        breakMinutes: session ? session.breakMinutes : 5,
+        longBreakMinutes: 15,
+        cycle: nextCycle,
+      });
+
+      // Redirect back to website
+      const targetUrl = blockedDomain.startsWith("http://") || blockedDomain.startsWith("https://")
+        ? blockedDomain
+        : `https://${blockedDomain}`;
+      window.location.href = targetUrl;
+    });
+
+    // Listen to background break ended notification
+    chrome.runtime.onMessage.addListener((msg) => {
+      if (msg.type === "POMODORO_BREAK_ENDED" && msg.domain === blockedDomain) {
+        syncPomoBreak();
+      }
+    });
+  }
+
+  // Action: Close Tab
+  closeTabBtn.addEventListener("click", () => {
     chrome.tabs.getCurrent((tab) => {
       if (tab && tab.id) {
         chrome.tabs.remove(tab.id);
@@ -147,8 +278,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   });
 
-  // Action 2: +5m Emergency Snooze or Extra Focus
-  document.getElementById("snoozeBtn").addEventListener("click", async () => {
+  // Action: +5m Emergency Snooze (Mode Limit / Timer)
+  snoozeBtn.addEventListener("click", async () => {
     const snoozeTime = Date.now() + 5 * 60 * 1000; // 5 minutes grace period
 
     if (mode === "timer") {

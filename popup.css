@@ -124,7 +124,7 @@
 }
 
 body {
-  width: 324px;
+  width: 338px;
   font-family: var(--font-sans);
   background-color: var(--bg-page);
   color: var(--text-main);
@@ -317,8 +317,8 @@ body {
 
 .tab-item {
   flex: 1;
-  padding: 6px 8px;
-  font-size: 12px;
+  padding: 6px 4px;
+  font-size: 11.5px;
   font-weight: 500;
   border: none;
   background: transparent;
@@ -326,6 +326,8 @@ body {
   cursor: pointer;
   border-radius: calc(var(--radius-md) - 3px);
   transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+  white-space: nowrap;
+  text-align: center;
 }
 
 .tab-item:hover {
@@ -337,6 +339,103 @@ body {
   color: var(--text-main);
   font-weight: 600;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+/* Pomodoro Components */
+.pomo-cycle-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+}
+
+.pomo-cycle-dots {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.pomo-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--border-strong);
+  transition: all 0.2s ease;
+}
+
+.pomo-dot.active {
+  background: var(--brand);
+  transform: scale(1.2);
+}
+
+.pomo-dot.completed {
+  background: var(--success-text);
+}
+
+.pomo-cycle-lbl {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.pomo-info-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.pomo-info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pomo-info-title {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--text-faint);
+}
+
+.pomo-info-val {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.pomo-info-sub {
+  font-size: 10.5px;
+  color: var(--text-muted);
+}
+
+.pomo-phase-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 4px;
+}
+
+.pomo-phase-cycle {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-faint);
+}
+
+.pomo-actions-row {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.pomo-actions-row button {
+  flex: 1;
 }
 
 .tab-panel {

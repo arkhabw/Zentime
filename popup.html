@@ -53,10 +53,13 @@
       <span data-i18n="unsupportedWarning">Timer hanya aktif pada alamat web reguler (http/https).</span>
     </div>
 
-    <!-- Navigasi Tab: Bersih dan berstruktur -->
+    <!-- Navigasi Tab: Bersih dan berstruktur (Apple Segmented Control) -->
     <nav class="tab-nav" role="tablist">
       <button class="tab-item active" id="tabManualBtn" data-tab="tab-manual" role="tab" aria-selected="true" aria-controls="tab-manual" data-i18n="tabManual">
-        Timer Manual
+        Timer
+      </button>
+      <button class="tab-item" id="tabPomoBtn" data-tab="tab-pomodoro" role="tab" aria-selected="false" aria-controls="tab-pomodoro" data-i18n="tabPomodoro">
+        Pomodoro
       </button>
       <button class="tab-item" id="tabAutoBtn" data-tab="tab-auto" role="tab" aria-selected="false" aria-controls="tab-auto" data-i18n="tabAuto">
         Batas Harian
@@ -121,7 +124,71 @@
     </main>
 
     <!-- ============================================== -->
-    <!-- TAB 2: MODE BATAS HARIAN (SCREEN TIME)         -->
+    <!-- TAB 2: MODE POMODORO                           -->
+    <!-- ============================================== -->
+    <main id="tab-pomodoro" class="tab-panel hidden" role="tabpanel" aria-labelledby="tabPomoBtn">
+      <!-- 2A: Setup Form -->
+      <div id="pomoSetupView" class="panel-section">
+        <!-- Cycle Bar -->
+        <div class="pomo-cycle-bar">
+          <div class="pomo-cycle-dots">
+            <span class="pomo-dot" id="pomoDot1"></span>
+            <span class="pomo-dot" id="pomoDot2"></span>
+            <span class="pomo-dot" id="pomoDot3"></span>
+            <span class="pomo-dot" id="pomoDot4"></span>
+          </div>
+          <span class="pomo-cycle-lbl" id="pomoCycleLbl" data-i18n="pomoCycleReady">Siklus 1 dari 4</span>
+        </div>
+
+        <!-- Presets -->
+        <div class="preset-row pomo-presets">
+          <button type="button" class="preset-btn active" id="pomoPreset25" data-focus="25" data-break="5">25 / 5m</button>
+          <button type="button" class="preset-btn" id="pomoPreset50" data-focus="50" data-break="10">50 / 10m</button>
+          <button type="button" class="preset-btn" id="pomoPreset15" data-focus="15" data-break="3">15 / 3m</button>
+        </div>
+
+        <div class="pomo-info-card">
+          <div class="pomo-info-row">
+            <span class="pomo-info-title" data-i18n="pomoScheduleTitle">Jadwal Sesi</span>
+            <span class="pomo-info-val" id="pomoScheduleText">25m Fokus • 5m Istirahat</span>
+          </div>
+          <div class="pomo-info-sub" data-i18n="pomoLongBreakNote">Istirahat panjang 15 menit otomatis setelah 4 siklus.</div>
+        </div>
+
+        <button id="startPomoBtn" class="btn-primary" type="button" data-i18n="startPomo">
+          Mulai Sesi Pomodoro
+        </button>
+      </div>
+
+      <!-- 2B: Active Running View -->
+      <div id="pomoActiveView" class="panel-section hidden">
+        <div class="timer-card">
+          <div class="pomo-phase-header">
+            <span id="pomoPhaseBadge" class="status-tag safe">🍅 Sesi Fokus</span>
+            <span id="pomoActiveCycleText" class="pomo-phase-cycle">Siklus 1/4</span>
+          </div>
+          <div class="timer-digits" id="pomoCountdownDisplay">25:00</div>
+          <div class="timer-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100">
+            <div class="timer-fill" id="pomoTimerFillBar"></div>
+          </div>
+          <div class="timer-meta">
+            <span class="meta-target" id="pomoTargetText">Target selesai: --:--</span>
+          </div>
+        </div>
+
+        <div class="pomo-actions-row">
+          <button id="skipPomoPhaseBtn" class="btn-subtle" type="button" data-i18n="pomoSkipPhase">
+            Lewati ke Istirahat
+          </button>
+          <button id="cancelPomoBtn" class="btn-danger" type="button" data-i18n="stopPomo">
+            Hentikan
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <!-- ============================================== -->
+    <!-- TAB 3: MODE BATAS HARIAN (SCREEN TIME)         -->
     <!-- ============================================== -->
     <main id="tab-auto" class="tab-panel" role="tabpanel" aria-labelledby="tabAutoBtn">
       <!-- Current Site Limit Section -->

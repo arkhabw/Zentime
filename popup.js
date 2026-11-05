@@ -13,8 +13,22 @@ const I18N = {
     brandSubtitle: "Fokus",
     detectingTab: "Mendeteksi tab...",
     unsupportedWarning: "Timer hanya aktif pada alamat web reguler (http/https).",
-    tabManual: "Timer Manual",
+    tabManual: "Timer",
+    tabPomodoro: "Pomodoro",
     tabAuto: "Batas Harian",
+    pomoCycleReady: "Siklus 1 dari 4",
+    pomoScheduleTitle: "Jadwal Sesi",
+    pomoLongBreakNote: "Istirahat panjang 15 menit otomatis setelah 4 siklus.",
+    startPomo: "Mulai Sesi Pomodoro",
+    stopPomo: "Hentikan",
+    pomoSkipPhase: "Lewati ke Istirahat",
+    pomoSkipBreak: "Lewati Istirahat & Fokus",
+    pomoFocusPhase: "🍅 Sesi Fokus",
+    pomoBreakPhase: "☕ Istirahat Santai",
+    pomoFocusWord: "Fokus",
+    pomoBreakWord: "Istirahat",
+    cycleLabel: "Siklus",
+    ofWord: "dari",
     customDuration: "Durasi kustom",
     minutesUnit: "menit",
     startTimer: "Mulai Timer",
@@ -51,8 +65,22 @@ const I18N = {
     brandSubtitle: "Focus",
     detectingTab: "Detecting active tab...",
     unsupportedWarning: "Timer only works on standard websites (http/https).",
-    tabManual: "Manual Timer",
+    tabManual: "Timer",
+    tabPomodoro: "Pomodoro",
     tabAuto: "Daily Limits",
+    pomoCycleReady: "Cycle 1 of 4",
+    pomoScheduleTitle: "Session Schedule",
+    pomoLongBreakNote: "15-minute long break automatically after 4 cycles.",
+    startPomo: "Start Pomodoro",
+    stopPomo: "Cancel",
+    pomoSkipPhase: "Skip to Break",
+    pomoSkipBreak: "Skip Break & Focus",
+    pomoFocusPhase: "🍅 Focus Session",
+    pomoBreakPhase: "☕ Mindful Break",
+    pomoFocusWord: "Focus",
+    pomoBreakWord: "Break",
+    cycleLabel: "Cycle",
+    ofWord: "of",
     customDuration: "Custom duration",
     minutesUnit: "minutes",
     startTimer: "Start Timer",
@@ -128,8 +156,10 @@ const currentDomainEl = document.getElementById("currentDomain");
 const unsupportedWarning = document.getElementById("unsupportedWarning");
 
 const tabManualBtn = document.getElementById("tabManualBtn");
+const tabPomoBtn = document.getElementById("tabPomoBtn");
 const tabAutoBtn = document.getElementById("tabAutoBtn");
 const tabManualPane = document.getElementById("tab-manual");
+const tabPomoPane = document.getElementById("tab-pomodoro");
 const tabAutoPane = document.getElementById("tab-auto");
 
 // Mode 1 Elements
@@ -149,6 +179,21 @@ const finishTimeText = document.getElementById("finishTimeText");
 const otherTimersSection = document.getElementById("otherTimersSection");
 const otherTimersCount = document.getElementById("otherTimersCount");
 const otherTimersList = document.getElementById("otherTimersList");
+
+// Mode Pomodoro Elements
+const pomoSetupView = document.getElementById("pomoSetupView");
+const pomoActiveView = document.getElementById("pomoActiveView");
+const pomoCycleLbl = document.getElementById("pomoCycleLbl");
+const pomoPresetBtns = document.querySelectorAll(".pomo-presets .preset-btn");
+const pomoScheduleText = document.getElementById("pomoScheduleText");
+const startPomoBtn = document.getElementById("startPomoBtn");
+const pomoPhaseBadge = document.getElementById("pomoPhaseBadge");
+const pomoActiveCycleText = document.getElementById("pomoActiveCycleText");
+const pomoCountdownDisplay = document.getElementById("pomoCountdownDisplay");
+const pomoTimerFillBar = document.getElementById("pomoTimerFillBar");
+const pomoTargetText = document.getElementById("pomoTargetText");
+const skipPomoPhaseBtn = document.getElementById("skipPomoPhaseBtn");
+const cancelPomoBtn = document.getElementById("cancelPomoBtn");
 
 // Mode 2 Elements
 const siteLimitActiveBox = document.getElementById("siteLimitActiveBox");
@@ -177,15 +222,17 @@ document.addEventListener("DOMContentLoaded", async () => {
   initTheme();
   setupTabs();
   setupPresets();
+  setupPomoControls();
   setupAutoModeControls();
 
   await detectCurrentSite();
   await refreshUI();
 
-  // Update realtime tampilan batas harian selama popup sedang dibuka
+  // Update realtime tampilan batas harian dan pomodoro selama popup sedang dibuka
   setInterval(async () => {
     const data = await chrome.storage.local.get(["dailyUsage", "autoLimits"]);
     renderMode2(data.autoLimits || {}, data.dailyUsage || {});
+    await renderPomodoro();
   }, 1000);
 
   startTimerBtn.addEventListener("click", handleStartTimer);
@@ -299,7 +346,7 @@ function applyTheme(theme) {
 }
 
 // -------------------------------------------------------------
-// 3. Navigasi Tab
+// 3. Navigasi Tab (Apple Segmented Control 3 Tab)
 // -------------------------------------------------------------
 function setupTabs() {
   chrome.storage.local.get("activePopupTab", (data) => {
@@ -313,6 +360,11 @@ function setupTabs() {
     chrome.storage.local.set({ activePopupTab: "tab-manual" });
   });
 
+  tabPomoBtn.addEventListener("click", () => {
+    switchTab("tab-pomodoro");
+    chrome.storage.local.set({ activePopupTab: "tab-pomodoro" });
+  });
+
   tabAutoBtn.addEventListener("click", () => {
     switchTab("tab-auto");
     chrome.storage.local.set({ activePopupTab: "tab-auto" });
@@ -321,13 +373,23 @@ function setupTabs() {
 
 function switchTab(tabId) {
   const isManual = tabId === "tab-manual";
+  const isPomo = tabId === "tab-pomodoro";
+  const isAuto = tabId === "tab-auto";
+
   tabManualBtn.classList.toggle("active", isManual);
   tabManualBtn.setAttribute("aria-selected", isManual ? "true" : "false");
   tabManualPane.classList.toggle("active", isManual);
+  tabManualPane.classList.toggle("hidden", !isManual);
 
-  tabAutoBtn.classList.toggle("active", !isManual);
-  tabAutoBtn.setAttribute("aria-selected", !isManual ? "true" : "false");
-  tabAutoPane.classList.toggle("active", !isManual);
+  tabPomoBtn.classList.toggle("active", isPomo);
+  tabPomoBtn.setAttribute("aria-selected", isPomo ? "true" : "false");
+  tabPomoPane.classList.toggle("active", isPomo);
+  tabPomoPane.classList.toggle("hidden", !isPomo);
+
+  tabAutoBtn.classList.toggle("active", isAuto);
+  tabAutoBtn.setAttribute("aria-selected", isAuto ? "true" : "false");
+  tabAutoPane.classList.toggle("active", isAuto);
+  tabAutoPane.classList.toggle("hidden", !isAuto);
 }
 
 // -------------------------------------------------------------
@@ -460,6 +522,7 @@ async function refreshUI() {
   const dailyUsage = data.dailyUsage || {};
 
   renderMode1(manualTimers);
+  await renderPomodoro();
   renderMode2(autoLimits, dailyUsage);
 }
 
@@ -600,6 +663,121 @@ function renderOtherTimers(manualTimers) {
 
   updateOtherList();
   otherTimersInterval = setInterval(updateOtherList, 1000);
+}
+
+// -------------------------------------------------------------
+// 8B. Mode Pomodoro Logic & Handlers
+// -------------------------------------------------------------
+let currentPomoPreset = { focus: 25, break: 5 };
+
+function setupPomoControls() {
+  pomoPresetBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      pomoPresetBtns.forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      const focus = parseInt(btn.getAttribute("data-focus"), 10);
+      const brk = parseInt(btn.getAttribute("data-break"), 10);
+      currentPomoPreset = { focus, break: brk };
+      pomoScheduleText.textContent = `${focus}m ${t("pomoFocusWord")} • ${brk}m ${t("pomoBreakWord")}`;
+    });
+  });
+
+  startPomoBtn.addEventListener("click", handleStartPomo);
+  skipPomoPhaseBtn.addEventListener("click", handleSkipPomoPhase);
+  cancelPomoBtn.addEventListener("click", handleCancelPomo);
+}
+
+async function renderPomodoro() {
+  if (!currentDomain) return;
+  const { pomodoroSessions = {} } = await chrome.storage.local.get("pomodoroSessions");
+  const session = pomodoroSessions[currentDomain];
+
+  if (!session || session.phase === "idle" || session.phase === "break_ended") {
+    pomoSetupView.classList.remove("hidden");
+    pomoActiveView.classList.add("hidden");
+
+    const cycle = session ? session.cycle : 1;
+    pomoCycleLbl.textContent = `${t("cycleLabel")} ${cycle} ${t("ofWord")} 4`;
+    for (let i = 1; i <= 4; i++) {
+      const dot = document.getElementById(`pomoDot${i}`);
+      if (dot) {
+        dot.classList.toggle("active", i === cycle);
+        dot.classList.toggle("completed", i < cycle);
+      }
+    }
+    return;
+  }
+
+  // Active Running View
+  pomoSetupView.classList.add("hidden");
+  pomoActiveView.classList.remove("hidden");
+
+  const now = Date.now();
+  const remainingMs = Math.max(0, session.endTime - now);
+  const totalSecs = Math.floor(remainingMs / 1000);
+  const mins = Math.floor(totalSecs / 60);
+  const secs = totalSecs % 60;
+  pomoCountdownDisplay.textContent = `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+
+  // Target end time
+  const finishDate = new Date(session.endTime);
+  const hours = String(finishDate.getHours()).padStart(2, "0");
+  const minutes = String(finishDate.getMinutes()).padStart(2, "0");
+  pomoTargetText.textContent = `${t("targetFinished")} ${hours}:${minutes}`;
+
+  // Progress bar
+  const totalDurationMs = (session.endTime - session.startTime) || 1;
+  const elapsedMs = Math.max(0, now - session.startTime);
+  const pct = Math.max(0, Math.min(100, (1 - elapsedMs / totalDurationMs) * 100));
+  pomoTimerFillBar.style.width = `${pct}%`;
+
+  pomoActiveCycleText.textContent = `${t("cycleLabel")} ${session.cycle}/4`;
+
+  if (session.phase === "focus") {
+    pomoPhaseBadge.className = "status-tag safe";
+    pomoPhaseBadge.textContent = t("pomoFocusPhase");
+    skipPomoPhaseBtn.textContent = t("pomoSkipPhase");
+    pomoTimerFillBar.style.backgroundColor = "var(--fill-bar)";
+  } else {
+    pomoPhaseBadge.className = "status-tag warning";
+    pomoPhaseBadge.textContent = t("pomoBreakPhase");
+    skipPomoPhaseBtn.textContent = t("pomoSkipBreak");
+    pomoTimerFillBar.style.backgroundColor = "var(--success-text)";
+  }
+}
+
+async function handleStartPomo() {
+  if (!currentDomain) return;
+  chrome.runtime.sendMessage({
+    type: "START_POMODORO",
+    domain: currentDomain,
+    focusMinutes: currentPomoPreset.focus,
+    breakMinutes: currentPomoPreset.break,
+    longBreakMinutes: 15,
+    cycle: 1,
+  }, async () => {
+    await refreshUI();
+  });
+}
+
+async function handleSkipPomoPhase() {
+  if (!currentDomain) return;
+  chrome.runtime.sendMessage({
+    type: "SKIP_POMODORO_PHASE",
+    domain: currentDomain,
+  }, async () => {
+    await refreshUI();
+  });
+}
+
+async function handleCancelPomo() {
+  if (!currentDomain) return;
+  chrome.runtime.sendMessage({
+    type: "CANCEL_POMODORO",
+    domain: currentDomain,
+  }, async () => {
+    await refreshUI();
+  });
 }
 
 // -------------------------------------------------------------
