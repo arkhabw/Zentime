@@ -148,6 +148,43 @@ function formatMinutesSeconds(totalSeconds) {
   return `${mins}${minUnit} ${secs}${secUnit}`;
 }
 
+// Helper: Perbandingan domain yang fleksibel (misal www.youtube.com cocok dengan youtube.com)
+function matchDomain(urlDomain, targetDomain) {
+  if (!urlDomain || !targetDomain) return false;
+  const u = urlDomain.toLowerCase().replace(/^www\./, "");
+  const t = targetDomain.toLowerCase().replace(/^www\./, "");
+  return u === t || u.endsWith("." + t) || t.endsWith("." + u);
+}
+
+// State untuk kalkulasi real-time Batas Harian detik demi detik
+let liveTracker = {
+  activeDomain: "",
+  activeTimestamp: Date.now(),
+  isWindowFocused: true,
+  dailyUsage: {},
+  autoLimits: {},
+};
+
+async function fetchLiveTrackerState() {
+  try {
+    const res = await chrome.runtime.sendMessage({ type: "GET_REALTIME_USAGE" });
+    if (res) {
+      liveTracker.activeDomain = res.activeDomain || "";
+      liveTracker.activeTimestamp = res.activeTimestamp || Date.now();
+      liveTracker.isWindowFocused = res.isWindowFocused !== false;
+      liveTracker.dailyUsage = res.dailyUsage || {};
+      liveTracker.autoLimits = res.autoLimits || {};
+    }
+  } catch {
+    const data = await chrome.storage.local.get(["dailyUsage", "autoLimits"]);
+    liveTracker.dailyUsage = data.dailyUsage || {};
+    liveTracker.autoLimits = data.autoLimits || {};
+    liveTracker.activeDomain = currentDomain;
+    liveTracker.activeTimestamp = Date.now();
+    liveTracker.isWindowFocused = true;
+  }
+}
+
 // -------------------------------------------------------------
 // DOM Elements
 // -------------------------------------------------------------
@@ -243,12 +280,22 @@ document.addEventListener("DOMContentLoaded", async () => {
   await detectCurrentSite();
   await refreshUI();
 
-  // Update realtime tampilan batas harian dan pomodoro selama popup sedang dibuka
+  // Loop update realtime UI saat popup sedang dibuka (1 detik sekali)
+  let loopCounter = 0;
   setInterval(async () => {
-    const data = await chrome.storage.local.get(["dailyUsage", "autoLimits"]);
-    renderMode2(data.autoLimits || {}, data.dailyUsage || {});
+    loopCounter++;
+    // Setiap 5 detik, sinkronisasi data dari background
+    if (loopCounter % 5 === 0) {
+      await fetchLiveTrackerState();
+    }
+    renderMode2();
     await renderPomodoro();
   }, 1000);
+
+  // Sync terakhir saat popup ditutup
+  window.addEventListener("pagehide", () => {
+    chrome.runtime.sendMessage({ type: "SYNC_REALTIME_USAGE" }).catch(() => {});
+  });
 
   startTimerBtn.addEventListener("click", handleStartTimer);
   cancelTimerBtn.addEventListener("click", handleCancelTimer);
@@ -553,19 +600,14 @@ async function refreshUI() {
   clearInterval(countdownInterval);
   clearInterval(otherTimersInterval);
 
-  const data = await chrome.storage.local.get([
-    "manualTimers",
-    "autoLimits",
-    "dailyUsage",
-  ]);
+  await fetchLiveTrackerState();
 
+  const data = await chrome.storage.local.get("manualTimers");
   const manualTimers = data.manualTimers || {};
-  const autoLimits = data.autoLimits || {};
-  const dailyUsage = data.dailyUsage || {};
 
   renderMode1(manualTimers);
   await renderPomodoro();
-  renderMode2(autoLimits, dailyUsage);
+  renderMode2();
 }
 
 // -------------------------------------------------------------
@@ -952,15 +994,24 @@ async function handleCancelPomo() {
 // -------------------------------------------------------------
 // 9. Render Mode 2 (Batas Harian)
 // -------------------------------------------------------------
-function renderMode2(autoLimits, dailyUsage) {
+function renderMode2() {
   const todayKey = getTodayKey();
+  const autoLimits = liveTracker.autoLimits || {};
+  const dailyUsage = liveTracker.dailyUsage || {};
   const currentLimit = currentDomain ? autoLimits[currentDomain] : null;
 
   if (currentLimit && currentLimit.enabled) {
     siteLimitFormBox.classList.add("hidden");
     siteLimitActiveBox.classList.remove("hidden");
 
-    const spentSecs = dailyUsage[todayKey]?.[currentDomain]?.spentSeconds || 0;
+    let spentSecs = dailyUsage[todayKey]?.[currentDomain]?.spentSeconds || 0;
+
+    // Real-time live offset jika domain saat ini sedang aktif & focused
+    if (liveTracker.isWindowFocused && matchDomain(currentDomain, liveTracker.activeDomain)) {
+      const liveOffset = Math.max(0, Math.floor((Date.now() - liveTracker.activeTimestamp) / 1000));
+      spentSecs += liveOffset;
+    }
+
     const limitSecs = currentLimit.dailyLimitMinutes * 60;
     const remainingSecs = Math.max(0, limitSecs - spentSecs);
 
@@ -973,6 +1024,7 @@ function renderMode2(autoLimits, dailyUsage) {
       limitStatusBadge.textContent = t("statusDanger");
       limitProgressBar.className = "limit-fill danger";
       limitProgressBar.style.width = "100%";
+      chrome.runtime.sendMessage({ type: "SYNC_REALTIME_USAGE" }).catch(() => {});
     } else {
       limitRemainingText.textContent = `(${formatMinutesSeconds(remainingSecs)} ${t("remainingTime")})`;
 
@@ -1011,41 +1063,85 @@ function renderAllLimitsFeed(autoLimits, dailyUsage, todayKey) {
   }
 
   emptyLimitsMsg.classList.add("hidden");
-  allLimitsList.innerHTML = "";
 
-  domains.forEach((dom) => {
-    const item = autoLimits[dom];
-    const spentSecs = dailyUsage[todayKey]?.[dom]?.spentSeconds || 0;
-    const limitSecs = item.dailyLimitMinutes * 60;
-    const percent = Math.min(100, Math.round((spentSecs / limitSecs) * 100));
+  // Periksa apakah DOM perlu di-rebuild (jika daftar domain berubah)
+  const existingItems = allLimitsList.querySelectorAll(".limit-feed-item");
+  const existingDomains = Array.from(existingItems).map((el) => el.getAttribute("data-domain"));
+  const needsRebuild = existingDomains.length !== domains.length ||
+    domains.some((d, idx) => existingDomains[idx] !== d);
 
-    let barClass = "limit-fill";
-    if (percent >= 100) barClass += " danger";
-    else if (percent >= 70) barClass += " warning";
+  if (needsRebuild) {
+    allLimitsList.innerHTML = "";
+    domains.forEach((dom) => {
+      const item = autoLimits[dom];
+      let spentSecs = dailyUsage[todayKey]?.[dom]?.spentSeconds || 0;
+      if (liveTracker.isWindowFocused && matchDomain(dom, liveTracker.activeDomain)) {
+        const liveOffset = Math.max(0, Math.floor((Date.now() - liveTracker.activeTimestamp) / 1000));
+        spentSecs += liveOffset;
+      }
+      const limitSecs = item.dailyLimitMinutes * 60;
+      const percent = Math.min(100, Math.round((spentSecs / limitSecs) * 100));
 
-    const li = document.createElement("li");
-    li.className = "limit-feed-item";
-    li.innerHTML = `
-      <div class="feed-row-top">
-        <span class="feed-domain" title="${dom}">${dom}</span>
-        <button class="feed-del-btn" data-domain="${dom}" title="${t("deleteLimit")} ${dom}">${t("deleteLimit")}</button>
-      </div>
-      <div class="limit-track">
-        <div class="${barClass}" style="width: ${percent}%;"></div>
-      </div>
-      <div class="feed-row-bottom">
-        <span>${formatMinutesSeconds(spentSecs)} / ${item.dailyLimitMinutes}m</span>
-        <span>${percent}%</span>
-      </div>
-    `;
+      let barClass = "limit-fill";
+      if (percent >= 100) barClass += " danger";
+      else if (percent >= 70) barClass += " warning";
 
-    li.querySelector(".feed-del-btn").addEventListener("click", async (e) => {
-      const domainToDelete = e.currentTarget.getAttribute("data-domain");
-      await removeAutoLimit(domainToDelete);
+      const li = document.createElement("li");
+      li.className = "limit-feed-item";
+      li.setAttribute("data-domain", dom);
+      li.innerHTML = `
+        <div class="feed-row-top">
+          <span class="feed-domain" title="${dom}">${dom}</span>
+          <button class="feed-del-btn" data-domain="${dom}" title="${t("deleteLimit")} ${dom}">${t("deleteLimit")}</button>
+        </div>
+        <div class="limit-track">
+          <div class="${barClass}" style="width: ${percent}%;"></div>
+        </div>
+        <div class="feed-row-bottom">
+          <span class="feed-spent-txt">${formatMinutesSeconds(spentSecs)} / ${item.dailyLimitMinutes}m</span>
+          <span class="feed-pct-txt">${percent}%</span>
+        </div>
+      `;
+
+      li.querySelector(".feed-del-btn").addEventListener("click", async (e) => {
+        const domainToDelete = e.currentTarget.getAttribute("data-domain");
+        await removeAutoLimit(domainToDelete);
+      });
+
+      allLimitsList.appendChild(li);
     });
+  } else {
+    // In-place updates agar animasi detik berjalan mulus tanpa re-render DOM
+    existingItems.forEach((li) => {
+      const dom = li.getAttribute("data-domain");
+      const item = autoLimits[dom];
+      if (!item) return;
 
-    allLimitsList.appendChild(li);
-  });
+      let spentSecs = dailyUsage[todayKey]?.[dom]?.spentSeconds || 0;
+      if (liveTracker.isWindowFocused && matchDomain(dom, liveTracker.activeDomain)) {
+        const liveOffset = Math.max(0, Math.floor((Date.now() - liveTracker.activeTimestamp) / 1000));
+        spentSecs += liveOffset;
+      }
+      const limitSecs = item.dailyLimitMinutes * 60;
+      const percent = Math.min(100, Math.round((spentSecs / limitSecs) * 100));
+
+      const bar = li.querySelector(".limit-track > div");
+      if (bar) {
+        bar.className = "limit-fill" + (percent >= 100 ? " danger" : (percent >= 70 ? " warning" : ""));
+        bar.style.width = `${percent}%`;
+      }
+
+      const spentTxt = li.querySelector(".feed-spent-txt");
+      if (spentTxt) {
+        spentTxt.textContent = `${formatMinutesSeconds(spentSecs)} / ${item.dailyLimitMinutes}m`;
+      }
+
+      const pctTxt = li.querySelector(".feed-pct-txt");
+      if (pctTxt) {
+        pctTxt.textContent = `${percent}%`;
+      }
+    });
+  }
 }
 
 async function handleSaveAutoLimit() {

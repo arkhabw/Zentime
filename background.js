@@ -150,26 +150,24 @@ async function processTimeElapsed() {
   const now = Date.now();
   const elapsedSeconds = Math.floor((now - lastTimestamp) / 1000);
 
-  if (elapsedSeconds <= 0) {
-    return;
+  // Update timestamp secara bertahap bebas dari drift
+  if (elapsedSeconds > 0) {
+    lastTimestamp += elapsedSeconds * 1000;
   }
 
-  // Update timestamp secara bertahap bebas dari drift
-  lastTimestamp += elapsedSeconds * 1000;
+  const todayKey = getTodayKey();
+  const data = await chrome.storage.local.get([
+    "autoLimits",
+    "dailyUsage",
+    "snoozedUntil",
+  ]);
+
+  const autoLimits = data.autoLimits || {};
+  const dailyUsage = data.dailyUsage || {};
+  const snoozedUntil = data.snoozedUntil || {};
 
   // Hanya hitung waktu jika domain aktif valid dan browser sedang dilihat
-  if (lastDomain && isWindowFocused && elapsedSeconds < 3600) {
-    const todayKey = getTodayKey();
-    const data = await chrome.storage.local.get([
-      "autoLimits",
-      "dailyUsage",
-      "snoozedUntil",
-    ]);
-
-    const autoLimits = data.autoLimits || {};
-    const dailyUsage = data.dailyUsage || {};
-    const snoozedUntil = data.snoozedUntil || {};
-
+  if (elapsedSeconds > 0 && lastDomain && isWindowFocused && elapsedSeconds < 3600) {
     const limitMatch = findAutoLimit(lastDomain, autoLimits);
     if (limitMatch && limitMatch.config && limitMatch.config.enabled) {
       const targetDomain = limitMatch.key;
@@ -225,13 +223,45 @@ async function processTimeElapsed() {
 
   // Identifikasi domain aktif saat ini
   try {
-    const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    lastDomain = activeTab ? getDomainFromUrl(activeTab.url) : "";
+    const [activeTab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+    if (activeTab && activeTab.url) {
+      const dom = getDomainFromUrl(activeTab.url);
+      if (dom) {
+        lastDomain = dom;
+      }
+    }
   } catch {
-    lastDomain = "";
+    // Pertahankan lastDomain jika query gagal
   }
 
+  // Jadwalkan deadline alarm persis untuk presisi detik saat background tertidur
+  await scheduleLimitDeadline(lastDomain, autoLimits, dailyUsage, todayKey, snoozedUntil);
+
   await updateBadge();
+}
+
+async function scheduleLimitDeadline(domain, autoLimits, dailyUsage, todayKey, snoozedUntil) {
+  await chrome.alarms.clear("autolimit_deadline");
+  if (!domain || !isWindowFocused) return;
+
+  const limitMatch = findAutoLimit(domain, autoLimits);
+  if (!limitMatch || !limitMatch.config || !limitMatch.config.enabled) return;
+
+  const targetDomain = limitMatch.key;
+  const isSnoozed = snoozedUntil[targetDomain] && Date.now() < snoozedUntil[targetDomain];
+  if (isSnoozed) return;
+
+  const spentSecs = dailyUsage[todayKey]?.[targetDomain]?.spentSeconds || 0;
+  const limitSecs = limitMatch.config.dailyLimitMinutes * 60;
+  const remainingSecs = limitSecs - spentSecs;
+
+  if (remainingSecs <= 0) {
+    await redirectToBlockPage(targetDomain, "limit");
+  } else {
+    chrome.alarms.create("autolimit_deadline", {
+      when: Date.now() + remainingSecs * 1000,
+    });
+  }
 }
 
 // -------------------------------------------------------------
@@ -440,7 +470,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 
       await updateBadge();
     }
-  } else if (alarm.name === "tracker_heartbeat") {
+  } else if (alarm.name === "tracker_heartbeat" || alarm.name === "autolimit_deadline") {
     await processTimeElapsed();
   }
 });
@@ -525,6 +555,31 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   } else if (message.type === "SNOOZE_SITE") {
     sendResponse({ success: true });
+    return true;
+  } else if (message.type === "GET_REALTIME_USAGE") {
+    (async () => {
+      await processTimeElapsed();
+      const todayKey = getTodayKey();
+      const data = await chrome.storage.local.get([
+        "autoLimits",
+        "dailyUsage",
+        "snoozedUntil",
+      ]);
+      sendResponse({
+        activeDomain: lastDomain,
+        activeTimestamp: lastTimestamp,
+        isWindowFocused: isWindowFocused,
+        dailyUsage: data.dailyUsage || {},
+        autoLimits: data.autoLimits || {},
+        snoozedUntil: data.snoozedUntil || {},
+      });
+    })();
+    return true;
+  } else if (message.type === "SYNC_REALTIME_USAGE") {
+    (async () => {
+      await processTimeElapsed();
+      sendResponse({ success: true });
+    })();
     return true;
   } else if (message.type === "START_POMODORO") {
     (async () => {
