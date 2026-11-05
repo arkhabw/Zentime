@@ -26,13 +26,16 @@ Built strictly under **Manifest V3** with zero external dependencies, Zentime ru
 - **Precision Countdown**: Large, high-contrast monospace countdown with a linear remaining-time progress bar.
 - **Multi-Site Monitor**: Track multiple running timers across different websites simultaneously.
 
-### 📊 Mode 2: Daily Screen Time Limits
-- **Smart Active-Tab Tracking**: Time is only counted when the tab is actively focused and visible. Switching tabs or minimizing the browser automatically pauses the timer.
-- **Configurable Daily Quotas**: Set daily allowance per site (e.g., 30 minutes per day on `twitter.com`).
+### 📊 Mode 2: Daily Screen Time Limits & Mindful Blocker
+- **Real-Time Active-Tab Tracking**: Second-by-second precision monitoring when actively focused; automatically pauses the moment you switch tabs or minimize the browser.
+- **Configurable Daily Quotas**: Set allowance per website (e.g., 30 minutes on `youtube.com`).
+- **Mindful Site Blocker (`blocked.html`)**: Automatically redirects to an aesthetic Apple HIG-styled "Take a Breath" screen when quota is exceeded.
+- **Emergency +5m Snooze**: Provides a mindful grace period button (+5m) or a single-click tab closer.
 - **Dynamic Usage Bar**: Visual indicators that shift from safe to warning (at 70%) and alert states (at 100%).
 - **Site Management Feed**: View and delete tracked websites with one click.
 
-### 🔔 System Notifications & Live Badges
+### 🔔 System Notifications, Audio Chimes & Live Badges
+- **10-Second Gentle Audio Chime**: Calming harmonic chords synthesized via pure Web Audio API when timers finish or quotas are hit.
 - **Desktop Alerts**: Receive system notifications via `chrome.notifications` the moment a timer finishes or a daily limit is reached.
 - **Toolbar Icon Badge**: Real-time remaining minutes badge displayed directly on the extension icon in Chrome's toolbar.
 
@@ -106,8 +109,13 @@ Zentime/
 │   ├── icon16.png        # Toolbar icon (16x16)
 │   ├── icon48.png        # Extension management icon (48x48)
 │   └── icon128.png       # Web Store & notification icon (128x128)
-├── background.js         # Manifest V3 service worker (alarms, tracking, badges)
-├── manifest.json         # Extension configuration & permissions
+├── audio.html            # Offscreen document host for Web Audio
+├── audio.js              # Synthesized 10s tranquil harmonic bell chime
+├── background.js         # Service worker (real-time tracking, blocker, alarms)
+├── blocked.html          # Mindful "Take a Breath" screen (Option A)
+├── blocked.css           # Apple HIG styling for mindful blocker
+├── blocked.js            # Interstitial logic (Close Tab & +5m snooze)
+├── manifest.json         # Extension configuration & MV3 permissions
 ├── popup.html            # Main popup interface
 ├── popup.css             # Anti-slop matte styling & dark mode tokens
 ├── popup.js              # UI controller, timer loops, & storage sync

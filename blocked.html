@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zentime - Saatnya Beristirahat</title>
+  <link rel="stylesheet" href="blocked.css">
+</head>
+<body>
+  <div class="blocked-container">
+    <div class="blocked-card">
+      <!-- Breathing Circle Visual -->
+      <div class="breathe-wrapper">
+        <div class="breathe-pulse"></div>
+        <div class="breathe-core">
+          <img id="blockedFavicon" class="site-favicon" src="icons/icon48.png" alt="" width="28" height="28">
+        </div>
+      </div>
+
+      <!-- Domain & Badge -->
+      <div class="site-identifier">
+        <span class="site-name" id="blockedDomain">domain.com</span>
+        <span class="quota-badge" id="quotaBadge">Batas Harian Tercapai</span>
+      </div>
+
+      <!-- Main Heading & Message -->
+      <h1 class="blocked-title" id="blockedTitle">Saatnya Beristirahat</h1>
+      <p class="blocked-desc" id="blockedDesc">
+        Kamu telah menggunakan seluruh alokasi waktu untuk situs ini hari ini. Luangkan waktu sejenak untuk rehat sejenak dari layar.
+      </p>
+
+      <!-- Usage Stat Card -->
+      <div class="usage-stat-card">
+        <div class="stat-col">
+          <span class="stat-lbl" id="statSpentLbl">Digunakan Hari Ini</span>
+          <span class="stat-val" id="statSpentVal">--m</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-col">
+          <span class="stat-lbl" id="statLimitLbl">Batas Maksimal</span>
+          <span class="stat-val" id="statLimitVal">--m</span>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="blocked-actions">
+        <button id="closeTabBtn" class="btn-primary" type="button">
+          Tutup Tab Ini
+        </button>
+        <button id="snoozeBtn" class="btn-subtle" type="button">
+          Perpanjang 5 Menit Darurat
+        </button>
+      </div>
+
+      <!-- Footer Info -->
+      <footer class="blocked-footer">
+        <span class="footer-brand">Zentime</span>
+        <span class="footer-dot">•</span>
+        <span class="footer-note" id="footerNote">Kelola batas waktu di menu ekstensi</span>
+      </footer>
+    </div>
+  </div>
+
+  <script src="blocked.js"></script>
+</body>
+</html>

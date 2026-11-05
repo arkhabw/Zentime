@@ -182,6 +182,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   await detectCurrentSite();
   await refreshUI();
 
+  // Update realtime tampilan batas harian selama popup sedang dibuka
+  setInterval(async () => {
+    const data = await chrome.storage.local.get(["dailyUsage", "autoLimits"]);
+    renderMode2(data.autoLimits || {}, data.dailyUsage || {});
+  }, 1000);
+
   startTimerBtn.addEventListener("click", handleStartTimer);
   cancelTimerBtn.addEventListener("click", handleCancelTimer);
 });
