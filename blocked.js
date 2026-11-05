@@ -25,7 +25,7 @@ const I18N = {
   id: {
     pageTitle: mode === "pomodoro" ? "Zentime - Istirahat Pomodoro" : (mode === "timer" ? "Zentime - Sesi Selesai" : "Zentime - Saatnya Beristirahat"),
     quotaBadge: mode === "pomodoro" ? "🍅 Istirahat Pomodoro" : (mode === "timer" ? "Sesi Fokus Selesai" : "Batas Harian Tercapai"),
-    pomoBadgeCycle: (cycle) => `🍅 Istirahat Pomodoro • Siklus ${cycle}/4`,
+    pomoBadgeCycle: (cycle, total = 4) => `🍅 Istirahat Pomodoro • Siklus ${cycle}/${total}`,
     title: "Saatnya Beristirahat",
     desc: mode === "pomodoro"
       ? `Sesi fokus untuk <strong>${blockedDomain}</strong> selesai. Luangkan waktu sejenak untuk rehat dari layar.`
@@ -49,7 +49,7 @@ const I18N = {
   en: {
     pageTitle: mode === "pomodoro" ? "Zentime - Pomodoro Break" : (mode === "timer" ? "Zentime - Session Complete" : "Zentime - Time for a Break"),
     quotaBadge: mode === "pomodoro" ? "🍅 Pomodoro Break" : (mode === "timer" ? "Focus Session Ended" : "Daily Limit Reached"),
-    pomoBadgeCycle: (cycle) => `🍅 Pomodoro Break • Cycle ${cycle}/4`,
+    pomoBadgeCycle: (cycle, total = 4) => `🍅 Pomodoro Break • Cycle ${cycle}/${total}`,
     title: "Time for a Mindful Break",
     desc: mode === "pomodoro"
       ? `Focus session for <strong>${blockedDomain}</strong> is complete. Take a mindful break away from the screen.`
@@ -112,8 +112,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.title = t.pageTitle;
   document.getElementById("blockedDomain").textContent = blockedDomain;
   const initialCycle = urlParams.get("cycle") || "1";
+  const totalCyclesParam = urlParams.get("totalCycles") || "4";
   document.getElementById("quotaBadge").textContent = (mode === "pomodoro" && t.pomoBadgeCycle)
-    ? t.pomoBadgeCycle(initialCycle)
+    ? t.pomoBadgeCycle(initialCycle, totalCyclesParam)
     : t.quotaBadge;
   document.getElementById("blockedTitle").textContent = t.title;
   document.getElementById("blockedDesc").innerHTML = t.desc;
@@ -220,10 +221,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       const pct = Math.max(0, Math.min(100, (1 - elapsed / totalDuration) * 100));
       pomoBreakFill.style.width = `${pct}%`;
 
+      const totalCycles = session?.totalCycles || parseInt(urlParams.get("totalCycles"), 10) || 4;
       if (session.phase === "break") {
         document.getElementById("quotaBadge").textContent = t.pomoBadgeCycle
-          ? t.pomoBadgeCycle(session.cycle)
-          : `${t.quotaBadge} • ${session.cycle}/4`;
+          ? t.pomoBadgeCycle(session.cycle, totalCycles)
+          : `${t.quotaBadge} • ${session.cycle}/${totalCycles}`;
         pomoResumeBtn.textContent = t.pomoResumeBtn;
       }
 
@@ -247,15 +249,17 @@ document.addEventListener("DOMContentLoaded", async () => {
       const store = await chrome.storage.local.get("pomodoroSessions");
       const session = store.pomodoroSessions?.[blockedDomain];
 
+      const totalCycles = session ? (session.totalCycles || 4) : 4;
       const nextCycle = (session && session.phase === "break_ended")
         ? session.cycle
-        : (session ? (session.cycle >= 4 ? 1 : session.cycle + 1) : 1);
+        : (session ? (session.cycle >= totalCycles ? 1 : session.cycle + 1) : 1);
 
       await chrome.runtime.sendMessage({
         type: "START_POMODORO",
         domain: blockedDomain,
         focusMinutes: session ? session.focusMinutes : 25,
         breakMinutes: session ? session.breakMinutes : 5,
+        totalCycles: totalCycles,
         longBreakMinutes: 15,
         cycle: nextCycle,
       });

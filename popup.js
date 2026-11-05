@@ -19,6 +19,10 @@ const I18N = {
     pomoCycleReady: "Siklus 1 dari 4",
     pomoScheduleTitle: "Jadwal Sesi",
     pomoLongBreakNote: "Istirahat panjang 15 menit otomatis setelah 4 siklus.",
+    pomoCustomPreset: "Kustom",
+    pomoFocusLbl: "Fokus",
+    pomoBreakLbl: "Istirahat",
+    pomoCyclesLbl: "Siklus",
     startPomo: "Mulai Sesi Pomodoro",
     stopPomo: "Hentikan",
     pomoSkipPhase: "Lewati ke Istirahat",
@@ -71,6 +75,10 @@ const I18N = {
     pomoCycleReady: "Cycle 1 of 4",
     pomoScheduleTitle: "Session Schedule",
     pomoLongBreakNote: "15-minute long break automatically after 4 cycles.",
+    pomoCustomPreset: "Custom",
+    pomoFocusLbl: "Focus",
+    pomoBreakLbl: "Break",
+    pomoCyclesLbl: "Cycles",
     startPomo: "Start Pomodoro",
     stopPomo: "Cancel",
     pomoSkipPhase: "Skip to Break",
@@ -184,8 +192,15 @@ const otherTimersList = document.getElementById("otherTimersList");
 const pomoSetupView = document.getElementById("pomoSetupView");
 const pomoActiveView = document.getElementById("pomoActiveView");
 const pomoCycleLbl = document.getElementById("pomoCycleLbl");
+const pomoCycleDots = document.getElementById("pomoCycleDots");
 const pomoPresetBtns = document.querySelectorAll(".pomo-presets .preset-btn");
+const pomoPresetCustom = document.getElementById("pomoPresetCustom");
+const pomoCustomBox = document.getElementById("pomoCustomBox");
+const pomoCustomFocus = document.getElementById("pomoCustomFocus");
+const pomoCustomBreak = document.getElementById("pomoCustomBreak");
+const pomoCustomCycles = document.getElementById("pomoCustomCycles");
 const pomoScheduleText = document.getElementById("pomoScheduleText");
+const pomoLongBreakNote = document.getElementById("pomoLongBreakNote");
 const startPomoBtn = document.getElementById("startPomoBtn");
 const pomoPhaseBadge = document.getElementById("pomoPhaseBadge");
 const pomoActiveCycleText = document.getElementById("pomoActiveCycleText");
@@ -307,6 +322,10 @@ function applyLanguage(lang, shouldRefresh = true) {
   if (themeToggleBtn) themeToggleBtn.setAttribute("aria-label", t("themeAria"));
   if (stepMinusBtn) stepMinusBtn.setAttribute("aria-label", t("stepMinusAria"));
   if (stepPlusBtn) stepPlusBtn.setAttribute("aria-label", t("stepPlusAria"));
+
+  if (typeof updatePomoScheduleInfo === "function") {
+    updatePomoScheduleInfo();
+  }
 
   if (shouldRefresh) {
     detectCurrentSite();
@@ -691,23 +710,118 @@ function renderOtherTimers(manualTimers) {
 // -------------------------------------------------------------
 // 8B. Mode Pomodoro Logic & Handlers
 // -------------------------------------------------------------
-let currentPomoPreset = { focus: 25, break: 5 };
+let currentPomoPreset = {
+  focus: 25,
+  break: 5,
+  cycles: 4,
+  isCustom: false,
+};
 
 function setupPomoControls() {
   pomoPresetBtns.forEach((btn) => {
     btn.addEventListener("click", () => {
       pomoPresetBtns.forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
-      const focus = parseInt(btn.getAttribute("data-focus"), 10);
-      const brk = parseInt(btn.getAttribute("data-break"), 10);
-      currentPomoPreset = { focus, break: brk };
-      pomoScheduleText.textContent = `${focus}m ${t("pomoFocusWord")} • ${brk}m ${t("pomoBreakWord")}`;
+
+      if (btn.id === "pomoPresetCustom") {
+        currentPomoPreset.isCustom = true;
+        if (pomoCustomBox) pomoCustomBox.classList.remove("hidden");
+        syncFromCustomInputs();
+      } else {
+        currentPomoPreset.isCustom = false;
+        if (pomoCustomBox) pomoCustomBox.classList.add("hidden");
+        const focus = parseInt(btn.getAttribute("data-focus"), 10) || 25;
+        const brk = parseInt(btn.getAttribute("data-break"), 10) || 5;
+        currentPomoPreset.focus = focus;
+        currentPomoPreset.break = brk;
+        currentPomoPreset.cycles = 4;
+        updatePomoScheduleInfo();
+      }
     });
   });
+
+  // Event listeners for custom inputs
+  [pomoCustomFocus, pomoCustomBreak, pomoCustomCycles].forEach((input) => {
+    if (!input) return;
+    input.addEventListener("input", () => {
+      if (currentPomoPreset.isCustom) {
+        syncFromCustomInputs(false);
+      }
+    });
+    input.addEventListener("change", () => {
+      if (currentPomoPreset.isCustom) {
+        syncFromCustomInputs(true);
+      }
+    });
+  });
+
+  updatePomoScheduleInfo();
 
   startPomoBtn.addEventListener("click", handleStartPomo);
   skipPomoPhaseBtn.addEventListener("click", handleSkipPomoPhase);
   cancelPomoBtn.addEventListener("click", handleCancelPomo);
+}
+
+function syncFromCustomInputs(enforceBounds = false) {
+  if (!pomoCustomFocus || !pomoCustomBreak || !pomoCustomCycles) return;
+
+  let focus = parseInt(pomoCustomFocus.value, 10);
+  let brk = parseInt(pomoCustomBreak.value, 10);
+  let cycles = parseInt(pomoCustomCycles.value, 10);
+
+  if (isNaN(focus) || focus < 1) focus = enforceBounds ? 25 : 1;
+  else if (focus > 180) focus = 180;
+
+  if (isNaN(brk) || brk < 1) brk = enforceBounds ? 5 : 1;
+  else if (brk > 60) brk = 60;
+
+  if (isNaN(cycles) || cycles < 1) cycles = enforceBounds ? 4 : 1;
+  else if (cycles > 12) cycles = 12;
+
+  if (enforceBounds) {
+    pomoCustomFocus.value = focus;
+    pomoCustomBreak.value = brk;
+    pomoCustomCycles.value = cycles;
+  }
+
+  currentPomoPreset.focus = focus;
+  currentPomoPreset.break = brk;
+  currentPomoPreset.cycles = cycles;
+
+  updatePomoScheduleInfo();
+}
+
+function updatePomoScheduleInfo() {
+  const focus = currentPomoPreset.focus || 25;
+  const brk = currentPomoPreset.break || 5;
+  const cycles = currentPomoPreset.cycles || 4;
+
+  if (pomoScheduleText) {
+    pomoScheduleText.textContent = `${focus}m ${t("pomoFocusWord")} • ${brk}m ${t("pomoBreakWord")}`;
+  }
+  if (pomoLongBreakNote) {
+    pomoLongBreakNote.textContent = currentLang === "en"
+      ? `15-minute long break automatically after ${cycles} cycles.`
+      : `Istirahat panjang 15 menit otomatis setelah ${cycles} siklus.`;
+  }
+  if (pomoCycleLbl) {
+    pomoCycleLbl.textContent = `${t("cycleLabel")} 1 ${t("ofWord")} ${cycles}`;
+  }
+
+  renderCycleDots(1, cycles);
+}
+
+function renderCycleDots(activeCycle, totalCycles) {
+  if (!pomoCycleDots) return;
+  pomoCycleDots.innerHTML = "";
+  const count = Math.max(1, totalCycles || 4);
+  for (let i = 1; i <= count; i++) {
+    const dot = document.createElement("span");
+    dot.className = "pomo-dot";
+    if (i === activeCycle) dot.classList.add("active");
+    else if (i < activeCycle) dot.classList.add("completed");
+    pomoCycleDots.appendChild(dot);
+  }
 }
 
 async function renderPomodoro() {
@@ -719,15 +833,12 @@ async function renderPomodoro() {
     pomoSetupView.classList.remove("hidden");
     pomoActiveView.classList.add("hidden");
 
+    const totalCycles = session?.totalCycles || currentPomoPreset.cycles || 4;
     const cycle = session ? session.cycle : 1;
-    pomoCycleLbl.textContent = `${t("cycleLabel")} ${cycle} ${t("ofWord")} 4`;
-    for (let i = 1; i <= 4; i++) {
-      const dot = document.getElementById(`pomoDot${i}`);
-      if (dot) {
-        dot.classList.toggle("active", i === cycle);
-        dot.classList.toggle("completed", i < cycle);
-      }
+    if (pomoCycleLbl) {
+      pomoCycleLbl.textContent = `${t("cycleLabel")} ${cycle} ${t("ofWord")} ${totalCycles}`;
     }
+    renderCycleDots(cycle, totalCycles);
     return;
   }
 
@@ -754,7 +865,8 @@ async function renderPomodoro() {
   const pct = Math.max(0, Math.min(100, (1 - elapsedMs / totalDurationMs) * 100));
   pomoTimerFillBar.style.width = `${pct}%`;
 
-  pomoActiveCycleText.textContent = `${t("cycleLabel")} ${session.cycle}/4`;
+  const totalCycles = session.totalCycles || 4;
+  pomoActiveCycleText.textContent = `${t("cycleLabel")} ${session.cycle}/${totalCycles}`;
 
   if (session.phase === "focus") {
     pomoPhaseBadge.className = "status-tag safe";
@@ -788,6 +900,7 @@ async function handleStartPomo() {
     domain: currentDomain,
     focusMinutes: currentPomoPreset.focus,
     breakMinutes: currentPomoPreset.break,
+    totalCycles: currentPomoPreset.cycles || 4,
     longBreakMinutes: 15,
     cycle: 1,
     originalUrl,

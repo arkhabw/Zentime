@@ -357,7 +357,8 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     const session = pomodoroSessions[domain];
 
     if (session) {
-      const isLongBreak = (session.cycle % 4 === 0);
+      const totalCycles = session.totalCycles || 4;
+      const isLongBreak = (session.cycle % totalCycles === 0);
       const breakMins = isLongBreak ? (session.longBreakMinutes || 15) : (session.breakMinutes || 5);
 
       session.phase = "break";
@@ -376,8 +377,8 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
       const { preferredLanguage = "id" } = await chrome.storage.local.get("preferredLanguage");
       const title = preferredLanguage === "en" ? "🍅 Pomodoro Focus Complete!" : "🍅 Sesi Fokus Selesai!";
       const message = preferredLanguage === "en"
-        ? `Cycle ${session.cycle}/4 complete! Take a ${breakMins}-minute break to recharge.`
-        : `Siklus ${session.cycle}/4 selesai! Saatnya istirahat selama ${breakMins} menit untuk menyegarkan pikiran.`;
+        ? `Cycle ${session.cycle}/${totalCycles} complete! Take a ${breakMins}-minute break to recharge.`
+        : `Siklus ${session.cycle}/${totalCycles} selesai! Saatnya istirahat selama ${breakMins} menit untuk menyegarkan pikiran.`;
 
       chrome.notifications.create(`pomo_${domain}_${Date.now()}`, {
         type: "basic",
@@ -392,7 +393,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
       await chrome.alarms.create(`pomo_break_${domain}`, { delayInMinutes: breakMins });
 
       // 4. Redirect tab ke layar istirahat
-      await redirectToBlockPage(domain, "pomodoro", `cycle=${session.cycle}&breakMinutes=${breakMins}`);
+      await redirectToBlockPage(domain, "pomodoro", `cycle=${session.cycle}&totalCycles=${totalCycles}&breakMinutes=${breakMins}`);
 
       await updateBadge();
     }
@@ -402,7 +403,8 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     const session = pomodoroSessions[domain];
 
     if (session) {
-      const nextCycle = (session.cycle >= 4) ? 1 : session.cycle + 1;
+      const totalCycles = session.totalCycles || 4;
+      const nextCycle = (session.cycle >= totalCycles) ? 1 : session.cycle + 1;
       session.phase = "break_ended";
       session.cycle = nextCycle;
       session.startTime = Date.now();
@@ -418,8 +420,8 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
       const { preferredLanguage = "id" } = await chrome.storage.local.get("preferredLanguage");
       const title = preferredLanguage === "en" ? "☕ Break Complete!" : "☕ Waktu Istirahat Selesai!";
       const message = preferredLanguage === "en"
-        ? `Break complete! Ready to start focus cycle ${nextCycle}/4?`
-        : `Waktu istirahat telah selesai. Siap lanjut ke siklus fokus ke-${nextCycle}/4?`;
+        ? `Break complete! Ready to start focus cycle ${nextCycle}/${totalCycles}?`
+        : `Waktu istirahat telah selesai. Siap lanjut ke siklus fokus ke-${nextCycle}/${totalCycles}?`;
 
       chrome.notifications.create(`pomo_break_${domain}_${Date.now()}`, {
         type: "basic",
@@ -526,7 +528,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   } else if (message.type === "START_POMODORO") {
     (async () => {
-      const { domain, focusMinutes, breakMinutes, longBreakMinutes, cycle, originalUrl } = message;
+      const { domain, focusMinutes, breakMinutes, longBreakMinutes, totalCycles, cycle, originalUrl } = message;
       const { pomodoroSessions = {} } = await chrome.storage.local.get("pomodoroSessions");
       const prevSession = pomodoroSessions[domain];
       const startTime = Date.now();
@@ -538,7 +540,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       pomodoroSessions[domain] = {
         phase: "focus",
         cycle: cycle || 1,
-        totalCycles: 4,
+        totalCycles: totalCycles || prevSession?.totalCycles || 4,
         focusMinutes: focusMinutes || 25,
         breakMinutes: breakMinutes || 5,
         longBreakMinutes: longBreakMinutes || 15,
@@ -564,9 +566,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         if (originalUrl && originalUrl.startsWith("http")) {
           session.originalUrl = originalUrl;
         }
+        const total = session.totalCycles || 4;
         if (session.phase === "focus") {
           await chrome.alarms.clear(`pomo_focus_${domain}`);
-          const isLong = (session.cycle % 4 === 0);
+          const isLong = (session.cycle % total === 0);
           const breakMins = isLong ? (session.longBreakMinutes || 15) : (session.breakMinutes || 5);
           session.phase = "break";
           session.startTime = Date.now();
@@ -575,10 +578,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           session.isLongBreak = isLong;
           await chrome.storage.local.set({ pomodoroSessions });
           await chrome.alarms.create(`pomo_break_${domain}`, { delayInMinutes: breakMins });
-          await redirectToBlockPage(domain, "pomodoro", `cycle=${session.cycle}&breakMinutes=${breakMins}`);
+          await redirectToBlockPage(domain, "pomodoro", `cycle=${session.cycle}&totalCycles=${total}&breakMinutes=${breakMins}`);
         } else {
           await chrome.alarms.clear(`pomo_break_${domain}`);
-          const nextCycle = (session.cycle >= 4) ? 1 : session.cycle + 1;
+          const nextCycle = (session.cycle >= total) ? 1 : session.cycle + 1;
           const startTime = Date.now();
           const endTime = startTime + session.focusMinutes * 60 * 1000;
           session.phase = "focus";

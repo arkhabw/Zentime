@@ -131,20 +131,48 @@
       <div id="pomoSetupView" class="panel-section">
         <!-- Cycle Bar -->
         <div class="pomo-cycle-bar">
-          <div class="pomo-cycle-dots">
-            <span class="pomo-dot" id="pomoDot1"></span>
-            <span class="pomo-dot" id="pomoDot2"></span>
-            <span class="pomo-dot" id="pomoDot3"></span>
-            <span class="pomo-dot" id="pomoDot4"></span>
+          <div class="pomo-cycle-dots" id="pomoCycleDots">
+            <span class="pomo-dot active"></span>
+            <span class="pomo-dot"></span>
+            <span class="pomo-dot"></span>
+            <span class="pomo-dot"></span>
           </div>
-          <span class="pomo-cycle-lbl" id="pomoCycleLbl" data-i18n="pomoCycleReady">Siklus 1 dari 4</span>
+          <span class="pomo-cycle-lbl" id="pomoCycleLbl">Siklus 1 dari 4</span>
         </div>
 
-        <!-- Presets -->
+        <!-- Presets Row (3 Quick + 1 Custom) -->
         <div class="preset-row pomo-presets">
           <button type="button" class="preset-btn active" id="pomoPreset25" data-focus="25" data-break="5">25 / 5m</button>
           <button type="button" class="preset-btn" id="pomoPreset50" data-focus="50" data-break="10">50 / 10m</button>
           <button type="button" class="preset-btn" id="pomoPreset15" data-focus="15" data-break="3">15 / 3m</button>
+          <button type="button" class="preset-btn" id="pomoPresetCustom" data-i18n="pomoCustomPreset">Kustom</button>
+        </div>
+
+        <!-- Custom Pomodoro Settings (Expandable) -->
+        <div id="pomoCustomBox" class="pomo-custom-box hidden">
+          <div class="pomo-custom-grid">
+            <div class="pomo-custom-col">
+              <label for="pomoCustomFocus" class="pomo-custom-label" data-i18n="pomoFocusLbl">Fokus</label>
+              <div class="pomo-counter">
+                <input type="number" id="pomoCustomFocus" min="1" max="180" value="25">
+                <span class="pomo-counter-unit" data-i18n="timeMin">m</span>
+              </div>
+            </div>
+            <div class="pomo-custom-col">
+              <label for="pomoCustomBreak" class="pomo-custom-label" data-i18n="pomoBreakLbl">Istirahat</label>
+              <div class="pomo-counter">
+                <input type="number" id="pomoCustomBreak" min="1" max="60" value="5">
+                <span class="pomo-counter-unit" data-i18n="timeMin">m</span>
+              </div>
+            </div>
+            <div class="pomo-custom-col">
+              <label for="pomoCustomCycles" class="pomo-custom-label" data-i18n="pomoCyclesLbl">Siklus</label>
+              <div class="pomo-counter">
+                <input type="number" id="pomoCustomCycles" min="1" max="12" value="4">
+                <span class="pomo-counter-unit">x</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="pomo-info-card">
@@ -152,7 +180,7 @@
             <span class="pomo-info-title" data-i18n="pomoScheduleTitle">Jadwal Sesi</span>
             <span class="pomo-info-val" id="pomoScheduleText">25m Fokus • 5m Istirahat</span>
           </div>
-          <div class="pomo-info-sub" data-i18n="pomoLongBreakNote">Istirahat panjang 15 menit otomatis setelah 4 siklus.</div>
+          <div class="pomo-info-sub" id="pomoLongBreakNote">Istirahat panjang 15 menit otomatis setelah 4 siklus.</div>
         </div>
 
         <button id="startPomoBtn" class="btn-primary" type="button" data-i18n="startPomo">
