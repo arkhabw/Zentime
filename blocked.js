@@ -2,33 +2,40 @@
 
 const urlParams = new URLSearchParams(window.location.search);
 const blockedDomain = urlParams.get("domain") || "Website";
+const mode = urlParams.get("mode") || "limit"; // "timer" | "limit"
 
 const I18N = {
   id: {
-    pageTitle: "Zentime - Saatnya Beristirahat",
-    quotaBadge: "Batas Harian Tercapai",
+    pageTitle: mode === "timer" ? "Zentime - Sesi Selesai" : "Zentime - Saatnya Beristirahat",
+    quotaBadge: mode === "timer" ? "Sesi Fokus Selesai" : "Batas Harian Tercapai",
     title: "Saatnya Beristirahat",
-    desc: `Kamu telah mencapai batas harian untuk <strong>${blockedDomain}</strong>. Luangkan waktu sejenak untuk rehat sejenak dari layar atau beralih ke hal lain.`,
+    desc: mode === "timer"
+      ? `Waktu fokus kamu untuk <strong>${blockedDomain}</strong> telah selesai. Luangkan waktu sejenak untuk rehat dari layar.`
+      : `Kamu telah mencapai batas harian untuk <strong>${blockedDomain}</strong>. Luangkan waktu sejenak untuk rehat sejenak dari layar atau beralih ke hal lain.`,
     statSpentLbl: "Digunakan Hari Ini",
-    statLimitLbl: "Batas Maksimal",
+    statLimitLbl: mode === "timer" ? "Status Sesi" : "Batas Maksimal",
     closeTabBtn: "Tutup Tab Ini",
-    snoozeBtn: "Perpanjang 5 Menit Darurat",
-    footerNote: "Kelola batas waktu di menu ekstensi",
+    snoozeBtn: mode === "timer" ? "+5 Menit Tambahan" : "Perpanjang 5 Menit Darurat",
+    footerNote: "Kelola waktu fokus & batas harian di menu ekstensi",
     timeMin: "m",
     timeSec: "d",
+    statusComplete: "Selesai",
   },
   en: {
-    pageTitle: "Zentime - Time for a Break",
-    quotaBadge: "Daily Limit Reached",
+    pageTitle: mode === "timer" ? "Zentime - Session Complete" : "Zentime - Time for a Break",
+    quotaBadge: mode === "timer" ? "Focus Session Ended" : "Daily Limit Reached",
     title: "Time for a Mindful Break",
-    desc: `You've reached your daily screen time quota for <strong>${blockedDomain}</strong>. Take a moment to step back and recharge.`,
+    desc: mode === "timer"
+      ? `Your focus session for <strong>${blockedDomain}</strong> has ended. Take a moment to step back and recharge.`
+      : `You've reached your daily screen time quota for <strong>${blockedDomain}</strong>. Take a moment to step back and recharge.`,
     statSpentLbl: "Used Today",
-    statLimitLbl: "Daily Limit",
+    statLimitLbl: mode === "timer" ? "Session Status" : "Daily Limit",
     closeTabBtn: "Close This Tab",
-    snoozeBtn: "+5m Emergency Extension",
-    footerNote: "Manage site limits in the extension menu",
+    snoozeBtn: mode === "timer" ? "+5m Extra Focus" : "+5m Emergency Extension",
+    footerNote: "Manage focus timer & site limits in the extension menu",
     timeMin: "m",
     timeSec: "s",
+    statusComplete: "Finished",
   },
 };
 
@@ -91,14 +98,43 @@ document.addEventListener("DOMContentLoaded", async () => {
   const autoLimits = data.autoLimits || {};
   const dailyUsage = data.dailyUsage || {};
 
-  const limitConfig = autoLimits[blockedDomain];
-  const usageData = dailyUsage[todayKey]?.[blockedDomain];
+  // Find limit config (with subdomain tolerance)
+  let limitConfig = autoLimits[blockedDomain];
+  if (!limitConfig) {
+    const cleanDomain = blockedDomain.toLowerCase().replace(/^www\./, "");
+    for (const key of Object.keys(autoLimits)) {
+      const cleanKey = key.toLowerCase().replace(/^www\./, "");
+      if (cleanDomain === cleanKey || cleanDomain.endsWith("." + cleanKey) || cleanKey.endsWith("." + cleanDomain)) {
+        limitConfig = autoLimits[key];
+        break;
+      }
+    }
+  }
 
-  const spentSecs = usageData ? usageData.spentSeconds : 0;
-  const limitMins = limitConfig ? limitConfig.dailyLimitMinutes : 0;
+  // Find usage data (with subdomain tolerance)
+  let spentSecs = 0;
+  if (dailyUsage[todayKey]) {
+    if (dailyUsage[todayKey][blockedDomain]) {
+      spentSecs = dailyUsage[todayKey][blockedDomain].spentSeconds;
+    } else {
+      const cleanDomain = blockedDomain.toLowerCase().replace(/^www\./, "");
+      for (const key of Object.keys(dailyUsage[todayKey])) {
+        const cleanKey = key.toLowerCase().replace(/^www\./, "");
+        if (cleanDomain === cleanKey || cleanDomain.endsWith("." + cleanKey) || cleanKey.endsWith("." + cleanDomain)) {
+          spentSecs = dailyUsage[todayKey][key].spentSeconds;
+          break;
+        }
+      }
+    }
+  }
 
   document.getElementById("statSpentVal").textContent = formatMinutesSeconds(spentSecs, lang);
-  document.getElementById("statLimitVal").textContent = `${limitMins}${t.timeMin}`;
+  if (mode === "timer" && (!limitConfig || !limitConfig.enabled)) {
+    document.getElementById("statLimitVal").textContent = t.statusComplete;
+  } else {
+    const limitMins = limitConfig ? limitConfig.dailyLimitMinutes : 0;
+    document.getElementById("statLimitVal").textContent = `${limitMins}${t.timeMin}`;
+  }
 
   // Action 1: Close Tab
   document.getElementById("closeTabBtn").addEventListener("click", () => {
@@ -111,13 +147,24 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   });
 
-  // Action 2: +5m Emergency Snooze
+  // Action 2: +5m Emergency Snooze or Extra Focus
   document.getElementById("snoozeBtn").addEventListener("click", async () => {
-    const { snoozedUntil = {} } = await chrome.storage.local.get("snoozedUntil");
     const snoozeTime = Date.now() + 5 * 60 * 1000; // 5 minutes grace period
-    snoozedUntil[blockedDomain] = snoozeTime;
 
+    if (mode === "timer") {
+      const { manualTimers = {} } = await chrome.storage.local.get("manualTimers");
+      manualTimers[blockedDomain] = {
+        durationMinutes: 5,
+        endTime: snoozeTime,
+      };
+      await chrome.storage.local.set({ manualTimers });
+      await chrome.alarms.create(`timer_${blockedDomain}`, { delayInMinutes: 5 });
+    }
+
+    const { snoozedUntil = {} } = await chrome.storage.local.get("snoozedUntil");
+    snoozedUntil[blockedDomain] = snoozeTime;
     await chrome.storage.local.set({ snoozedUntil });
+
     chrome.runtime.sendMessage({
       type: "SNOOZE_SITE",
       domain: blockedDomain,
@@ -125,6 +172,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     // Redirect user back to the website
-    window.location.href = `https://${blockedDomain}`;
+    const targetUrl = blockedDomain.startsWith("http://") || blockedDomain.startsWith("https://")
+      ? blockedDomain
+      : `https://${blockedDomain}`;
+    window.location.href = targetUrl;
   });
 });

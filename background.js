@@ -28,12 +28,31 @@ function getDomainFromUrl(rawUrl) {
   return "";
 }
 
+// Helper: Perbandingan domain yang fleksibel (misal www.youtube.com cocok dengan youtube.com)
+function matchDomain(urlDomain, targetDomain) {
+  if (!urlDomain || !targetDomain) return false;
+  const u = urlDomain.toLowerCase().replace(/^www\./, "");
+  const t = targetDomain.toLowerCase().replace(/^www\./, "");
+  return u === t || u.endsWith("." + t) || t.endsWith("." + u);
+}
+
+// Helper: Cari konfigurasi batas harian yang cocok
+function findAutoLimit(domain, autoLimits) {
+  if (!domain || !autoLimits) return null;
+  if (autoLimits[domain]) return { key: domain, config: autoLimits[domain] };
+  for (const key of Object.keys(autoLimits)) {
+    if (matchDomain(domain, key)) {
+      return { key, config: autoLimits[key] };
+    }
+  }
+  return null;
+}
+
 // -------------------------------------------------------------
 // 1. Audio Chime Playback (Offscreen Document & Web Audio API)
 // -------------------------------------------------------------
 async function playGentleChime() {
   try {
-    // Cek apakah offscreen document sudah aktif
     const existingContexts = await chrome.runtime.getContexts({
       contextTypes: ["OFFSCREEN_DOCUMENT"],
     });
@@ -46,7 +65,6 @@ async function playGentleChime() {
       });
     }
 
-    // Kirim pesan untuk memicu audio chime
     chrome.runtime.sendMessage({ type: "PLAY_CHIME" });
   } catch (err) {
     console.warn("Unable to trigger offscreen chime:", err);
@@ -54,7 +72,34 @@ async function playGentleChime() {
 }
 
 // -------------------------------------------------------------
-// 2. Core Engine: Real-Time Tab Tracking & Blocker Enforcement
+// 2. Redirect Tab ke Layar Penjedaan (blocked.html)
+// -------------------------------------------------------------
+async function redirectToBlockPage(domain, reason = "limit") {
+  try {
+    const blockedUrl = chrome.runtime.getURL(
+      `blocked.html?domain=${encodeURIComponent(domain)}&mode=${encodeURIComponent(reason)}`
+    );
+
+    // Dapatkan semua tab yang sedang membuka domain ini (termasuk www. atau tab latar belakang)
+    const tabs = await chrome.tabs.query({});
+    for (const tab of tabs) {
+      if (tab.id) {
+        const rawUrl = tab.url || tab.pendingUrl || "";
+        if (rawUrl && !rawUrl.includes("blocked.html")) {
+          const tabDomain = getDomainFromUrl(rawUrl);
+          if (matchDomain(tabDomain, domain)) {
+            chrome.tabs.update(tab.id, { url: blockedUrl });
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.warn("Redirect to block page error:", err);
+  }
+}
+
+// -------------------------------------------------------------
+// 3. Core Engine: Real-Time Tab Tracking & Blocker Enforcement
 // -------------------------------------------------------------
 async function processTimeElapsed() {
   const now = Date.now();
@@ -64,7 +109,7 @@ async function processTimeElapsed() {
     return;
   }
 
-  // Update timestamp secara inkremental agar bebas dari drift
+  // Update timestamp secara bertahap bebas dari drift
   lastTimestamp += elapsedSeconds * 1000;
 
   // Hanya hitung waktu jika domain aktif valid dan browser sedang dilihat
@@ -80,38 +125,40 @@ async function processTimeElapsed() {
     const dailyUsage = data.dailyUsage || {};
     const snoozedUntil = data.snoozedUntil || {};
 
-    if (autoLimits[lastDomain] && autoLimits[lastDomain].enabled) {
+    const limitMatch = findAutoLimit(lastDomain, autoLimits);
+    if (limitMatch && limitMatch.config && limitMatch.config.enabled) {
+      const targetDomain = limitMatch.key;
+
       if (!dailyUsage[todayKey]) {
         dailyUsage[todayKey] = {};
       }
-      if (!dailyUsage[todayKey][lastDomain]) {
-        dailyUsage[todayKey][lastDomain] = { spentSeconds: 0, notified: false };
+      if (!dailyUsage[todayKey][targetDomain]) {
+        dailyUsage[todayKey][targetDomain] = { spentSeconds: 0, notified: false };
       }
 
-      dailyUsage[todayKey][lastDomain].spentSeconds += elapsedSeconds;
+      dailyUsage[todayKey][targetDomain].spentSeconds += elapsedSeconds;
 
-      const limitMinutes = autoLimits[lastDomain].dailyLimitMinutes;
+      const limitMinutes = limitMatch.config.dailyLimitMinutes;
       const limitSeconds = limitMinutes * 60;
-      const currentSpent = dailyUsage[todayKey][lastDomain].spentSeconds;
+      const currentSpent = dailyUsage[todayKey][targetDomain].spentSeconds;
 
-      const isSnoozed = snoozedUntil[lastDomain] && Date.now() < snoozedUntil[lastDomain];
+      const isSnoozed = snoozedUntil[targetDomain] && Date.now() < snoozedUntil[targetDomain];
 
       // Jika kuota habis
       if (currentSpent >= limitSeconds) {
         // 1. Notifikasi & Suara (hanya sekali per hari saat pertama kali habis)
-        if (!dailyUsage[todayKey][lastDomain].notified) {
-          dailyUsage[todayKey][lastDomain].notified = true;
+        if (!dailyUsage[todayKey][targetDomain].notified) {
+          dailyUsage[todayKey][targetDomain].notified = true;
 
-          // Mainkan audio lonceng lembut ~10 detik
           await playGentleChime();
 
           const { preferredLanguage = "id" } = await chrome.storage.local.get("preferredLanguage");
           const title = preferredLanguage === "en" ? "🛑 Daily Limit Reached!" : "🛑 Batas Harian Tercapai!";
           const message = preferredLanguage === "en"
-            ? `You have used ${lastDomain} for ${limitMinutes} minutes today. Time for a mindful break!`
-            : `Kamu sudah menggunakan ${lastDomain} selama ${limitMinutes} menit hari ini. Saatnya beristirahat!`;
+            ? `You have used ${targetDomain} for ${limitMinutes} minutes today. Time for a mindful break!`
+            : `Kamu sudah menggunakan ${targetDomain} selama ${limitMinutes} menit hari ini. Saatnya beristirahat!`;
 
-          chrome.notifications.create(`autolimit_${lastDomain}_${Date.now()}`, {
+          chrome.notifications.create(`autolimit_${targetDomain}_${Date.now()}`, {
             type: "basic",
             iconUrl: "icons/icon128.png",
             title: title,
@@ -121,9 +168,9 @@ async function processTimeElapsed() {
           });
         }
 
-        // 2. Jika tidak sedang dalam masa perpanjangan darurat (+5m snooze), arahkan ke blocked.html
+        // 2. Redirect jika tidak dalam masa perpanjangan darurat (+5m snooze)
         if (!isSnoozed) {
-          await redirectToBlockPage(lastDomain);
+          await redirectToBlockPage(targetDomain, "limit");
         }
       }
 
@@ -142,26 +189,8 @@ async function processTimeElapsed() {
   await updateBadge();
 }
 
-// Redirect tab aktif ke layar penjedaan (blocked.html)
-async function redirectToBlockPage(domain) {
-  try {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (!tab || !tab.id || !tab.url) return;
-
-    const tabDomain = getDomainFromUrl(tab.url);
-    if (tabDomain === domain) {
-      const blockedUrl = chrome.runtime.getURL(`blocked.html?domain=${encodeURIComponent(domain)}`);
-      if (!tab.url.includes("blocked.html")) {
-        chrome.tabs.update(tab.id, { url: blockedUrl });
-      }
-    }
-  } catch (err) {
-    console.warn("Redirect to block page error:", err);
-  }
-}
-
 // -------------------------------------------------------------
-// 3. Loop Real-Time (Detik-ke-Detik Presisi)
+// 4. Loop Real-Time (Detik-ke-Detik Presisi)
 // -------------------------------------------------------------
 function startRealtimeLoop() {
   if (!realtimeInterval) {
@@ -174,15 +203,13 @@ function startRealtimeLoop() {
   }
 }
 
-// Mulai loop real-time saat service worker menyala
 startRealtimeLoop();
 
 // -------------------------------------------------------------
-// 4. Event Listeners Pergantian Tab & URL
+// 5. Event Listeners Pergantian Tab & Navigasi
 // -------------------------------------------------------------
 chrome.tabs.onActivated.addListener(async () => {
   await processTimeElapsed();
-  // Cek apakah tab yang baru dibuka sudah mencapai kuota limit
   if (lastDomain) {
     await checkTabLimitOnNavigation(lastDomain);
   }
@@ -210,17 +237,21 @@ async function checkTabLimitOnNavigation(domain, tabId = null) {
   const dailyUsage = data.dailyUsage || {};
   const snoozedUntil = data.snoozedUntil || {};
 
-  if (autoLimits[domain] && autoLimits[domain].enabled) {
-    const isSnoozed = snoozedUntil[domain] && Date.now() < snoozedUntil[domain];
-    const spentSecs = dailyUsage[todayKey]?.[domain]?.spentSeconds || 0;
-    const limitSecs = autoLimits[domain].dailyLimitMinutes * 60;
+  const limitMatch = findAutoLimit(domain, autoLimits);
+  if (limitMatch && limitMatch.config && limitMatch.config.enabled) {
+    const targetDomain = limitMatch.key;
+    const isSnoozed = snoozedUntil[targetDomain] && Date.now() < snoozedUntil[targetDomain];
+    const spentSecs = dailyUsage[todayKey]?.[targetDomain]?.spentSeconds || 0;
+    const limitSecs = limitMatch.config.dailyLimitMinutes * 60;
 
     if (spentSecs >= limitSecs && !isSnoozed) {
-      const blockedUrl = chrome.runtime.getURL(`blocked.html?domain=${encodeURIComponent(domain)}`);
+      const blockedUrl = chrome.runtime.getURL(
+        `blocked.html?domain=${encodeURIComponent(targetDomain)}&mode=limit`
+      );
       if (tabId) {
         chrome.tabs.update(tabId, { url: blockedUrl });
       } else {
-        await redirectToBlockPage(domain);
+        await redirectToBlockPage(targetDomain, "limit");
       }
     }
   }
@@ -238,11 +269,10 @@ chrome.windows.onFocusChanged.addListener(async (windowId) => {
   }
 });
 
-// Alarm heartbeat fallback setiap 1 menit
 chrome.alarms.create("tracker_heartbeat", { periodInMinutes: 1 });
 
 // -------------------------------------------------------------
-// 5. Alarm Handler (Mode 1 Manual Timer & Chime)
+// 6. Alarm Handler (Mode 1 Manual Timer Selesai)
 // -------------------------------------------------------------
 chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name.startsWith("timer_")) {
@@ -253,9 +283,10 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     delete manualTimers[domain];
     await chrome.storage.local.set({ manualTimers });
 
-    // Mainkan audio chime lembut ~10 detik
+    // 1. Mainkan audio chime lembut ~10 detik
     await playGentleChime();
 
+    // 2. Tampilkan notifikasi desktop
     const { preferredLanguage = "id" } = await chrome.storage.local.get("preferredLanguage");
     const title = preferredLanguage === "en" ? "⏰ Time's Up!" : "⏰ Waktu Habis!";
     const message = preferredLanguage === "en"
@@ -271,6 +302,9 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
       requireInteraction: true,
     });
 
+    // 3. PENTING: Redirect tab aktif/terkait ke layar "Saatnya Beristirahat" / Sesi Selesai!
+    await redirectToBlockPage(domain, "timer");
+
     await updateBadge();
   } else if (alarm.name === "tracker_heartbeat") {
     await processTimeElapsed();
@@ -278,7 +312,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 });
 
 // -------------------------------------------------------------
-// 6. Update Toolbar Badge
+// 7. Update Toolbar Badge
 // -------------------------------------------------------------
 async function updateBadge() {
   try {
@@ -305,12 +339,13 @@ async function updateBadge() {
     }
 
     // Mode 2: Batas Harian
-    const autoLimit = autoLimits[domain];
-    if (autoLimit && autoLimit.enabled) {
+    const limitMatch = findAutoLimit(domain, autoLimits);
+    if (limitMatch && limitMatch.config && limitMatch.config.enabled) {
+      const targetDomain = limitMatch.key;
       const todayKey = getTodayKey();
-      const usage = dailyUsage[todayKey]?.[domain];
+      const usage = dailyUsage[todayKey]?.[targetDomain];
       const spentSecs = usage ? usage.spentSeconds : 0;
-      const limitSecs = autoLimit.dailyLimitMinutes * 60;
+      const limitSecs = limitMatch.config.dailyLimitMinutes * 60;
       const remainingSecs = Math.max(0, limitSecs - spentSecs);
       const remainingMins = Math.ceil(remainingSecs / 60);
 
@@ -334,7 +369,7 @@ async function updateBadge() {
 }
 
 // -------------------------------------------------------------
-// 7. Pesan Runtime (Popup & Blocked Page)
+// 8. Pesan Runtime (Popup & Blocked Page)
 // -------------------------------------------------------------
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === "TIMER_UPDATED" || message.type === "AUTO_LIMIT_UPDATED") {
