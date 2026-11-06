@@ -156,6 +156,18 @@ function matchDomain(urlDomain, targetDomain) {
   return u === t || u.endsWith("." + t) || t.endsWith("." + u);
 }
 
+// Helper: Cari konfigurasi batas harian yang cocok
+function findAutoLimit(domain, autoLimits) {
+  if (!domain || !autoLimits) return null;
+  if (autoLimits[domain]) return { key: domain, config: autoLimits[domain] };
+  for (const key of Object.keys(autoLimits)) {
+    if (matchDomain(domain, key)) {
+      return { key, config: autoLimits[key] };
+    }
+  }
+  return null;
+}
+
 // State untuk kalkulasi real-time Batas Harian detik demi detik
 let liveTracker = {
   activeDomain: "",
@@ -167,11 +179,14 @@ let liveTracker = {
 
 async function fetchLiveTrackerState() {
   try {
-    const res = await chrome.runtime.sendMessage({ type: "GET_REALTIME_USAGE" });
+    const res = await chrome.runtime.sendMessage({
+      type: "GET_REALTIME_USAGE",
+      currentDomain: currentDomain,
+    });
     if (res) {
-      liveTracker.activeDomain = res.activeDomain || "";
+      liveTracker.activeDomain = res.activeDomain || currentDomain || "";
       liveTracker.activeTimestamp = res.activeTimestamp || Date.now();
-      liveTracker.isWindowFocused = res.isWindowFocused !== false;
+      liveTracker.isWindowFocused = true;
       liveTracker.dailyUsage = res.dailyUsage || {};
       liveTracker.autoLimits = res.autoLimits || {};
     }
@@ -294,7 +309,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Sync terakhir saat popup ditutup
   window.addEventListener("pagehide", () => {
-    chrome.runtime.sendMessage({ type: "SYNC_REALTIME_USAGE" }).catch(() => {});
+    chrome.runtime.sendMessage({ type: "POPUP_CLOSED" }).catch(() => {});
   });
 
   startTimerBtn.addEventListener("click", handleStartTimer);
@@ -522,6 +537,14 @@ function setupAutoModeControls() {
   editCurrentLimitBtn.addEventListener("click", () => {
     siteLimitFormBox.classList.remove("hidden");
     siteLimitActiveBox.classList.add("hidden");
+    const limitMatch = findAutoLimit(currentDomain, liveTracker.autoLimits || {});
+    if (limitMatch && limitMatch.config) {
+      const mins = String(limitMatch.config.dailyLimitMinutes);
+      autoMinutesInput.value = mins;
+      autoChips.forEach((btn) => {
+        btn.classList.toggle("active", btn.getAttribute("data-mins") === mins);
+      });
+    }
     autoMinutesInput.focus();
     autoMinutesInput.select();
   });
@@ -998,16 +1021,22 @@ function renderMode2() {
   const todayKey = getTodayKey();
   const autoLimits = liveTracker.autoLimits || {};
   const dailyUsage = liveTracker.dailyUsage || {};
-  const currentLimit = currentDomain ? autoLimits[currentDomain] : null;
+  const limitMatch = findAutoLimit(currentDomain, autoLimits);
+  const currentLimit = limitMatch ? limitMatch.config : null;
+  const targetDomain = limitMatch ? limitMatch.key : currentDomain;
 
   if (currentLimit && currentLimit.enabled) {
     siteLimitFormBox.classList.add("hidden");
     siteLimitActiveBox.classList.remove("hidden");
 
-    let spentSecs = dailyUsage[todayKey]?.[currentDomain]?.spentSeconds || 0;
+    let spentSecs = dailyUsage[todayKey]?.[targetDomain]?.spentSeconds || 0;
 
-    // Real-time live offset jika domain saat ini sedang aktif & focused
-    if (liveTracker.isWindowFocused && matchDomain(currentDomain, liveTracker.activeDomain)) {
+    // Real-time live offset jika website saat ini sedang dibuka di tab aktif
+    const isActiveTab = matchDomain(currentDomain, liveTracker.activeDomain) ||
+      matchDomain(targetDomain, liveTracker.activeDomain) ||
+      (liveTracker.activeDomain === "" && currentDomain);
+
+    if (isActiveTab) {
       const liveOffset = Math.max(0, Math.floor((Date.now() - liveTracker.activeTimestamp) / 1000));
       spentSecs += liveOffset;
     }
@@ -1044,9 +1073,7 @@ function renderMode2() {
   } else {
     siteLimitActiveBox.classList.add("hidden");
     siteLimitFormBox.classList.remove("hidden");
-    if (currentDomain) {
-      autoMinutesInput.value = "30";
-    }
+    // Tidak menimpa autoMinutesInput.value agar preset / input pengguna tidak ter-reset
   }
 
   renderAllLimitsFeed(autoLimits, dailyUsage, todayKey);
@@ -1075,7 +1102,8 @@ function renderAllLimitsFeed(autoLimits, dailyUsage, todayKey) {
     domains.forEach((dom) => {
       const item = autoLimits[dom];
       let spentSecs = dailyUsage[todayKey]?.[dom]?.spentSeconds || 0;
-      if (liveTracker.isWindowFocused && matchDomain(dom, liveTracker.activeDomain)) {
+      const isItemActive = matchDomain(dom, liveTracker.activeDomain) || matchDomain(dom, currentDomain);
+      if (isItemActive) {
         const liveOffset = Math.max(0, Math.floor((Date.now() - liveTracker.activeTimestamp) / 1000));
         spentSecs += liveOffset;
       }
@@ -1118,7 +1146,8 @@ function renderAllLimitsFeed(autoLimits, dailyUsage, todayKey) {
       if (!item) return;
 
       let spentSecs = dailyUsage[todayKey]?.[dom]?.spentSeconds || 0;
-      if (liveTracker.isWindowFocused && matchDomain(dom, liveTracker.activeDomain)) {
+      const isItemActive = matchDomain(dom, liveTracker.activeDomain) || matchDomain(dom, currentDomain);
+      if (isItemActive) {
         const liveOffset = Math.max(0, Math.floor((Date.now() - liveTracker.activeTimestamp) / 1000));
         spentSecs += liveOffset;
       }
@@ -1155,8 +1184,11 @@ async function handleSaveAutoLimit() {
   }
 
   const { autoLimits = {} } = await chrome.storage.local.get("autoLimits");
-  autoLimits[currentDomain] = {
-    domain: currentDomain,
+  const limitMatch = findAutoLimit(currentDomain, autoLimits);
+  const saveKey = limitMatch ? limitMatch.key : currentDomain;
+
+  autoLimits[saveKey] = {
+    domain: saveKey,
     dailyLimitMinutes: minutes,
     enabled: true,
   };
@@ -1168,12 +1200,20 @@ async function handleSaveAutoLimit() {
 
 async function handleDeleteCurrentLimit() {
   if (!currentDomain) return;
-  await removeAutoLimit(currentDomain);
+  const { autoLimits = {} } = await chrome.storage.local.get("autoLimits");
+  const limitMatch = findAutoLimit(currentDomain, autoLimits);
+  const keyToDelete = limitMatch ? limitMatch.key : currentDomain;
+  await removeAutoLimit(keyToDelete);
 }
 
 async function removeAutoLimit(domain) {
   const { autoLimits = {} } = await chrome.storage.local.get("autoLimits");
   delete autoLimits[domain];
+  for (const key of Object.keys(autoLimits)) {
+    if (matchDomain(domain, key)) {
+      delete autoLimits[key];
+    }
+  }
   await chrome.storage.local.set({ autoLimits });
 
   chrome.runtime.sendMessage({ type: "AUTO_LIMIT_UPDATED" });

@@ -3,6 +3,7 @@
 let lastDomain = "";
 let lastTimestamp = Date.now();
 let isWindowFocused = true;
+let isPopupOpen = false;
 let realtimeInterval = null;
 
 // Helper: Format tanggal hari ini (YYYY-MM-DD)
@@ -166,8 +167,10 @@ async function processTimeElapsed() {
   const dailyUsage = data.dailyUsage || {};
   const snoozedUntil = data.snoozedUntil || {};
 
+  const isBrowsingActive = isWindowFocused || isPopupOpen;
+
   // Hanya hitung waktu jika domain aktif valid dan browser sedang dilihat
-  if (elapsedSeconds > 0 && lastDomain && isWindowFocused && elapsedSeconds < 3600) {
+  if (elapsedSeconds > 0 && lastDomain && isBrowsingActive && elapsedSeconds < 3600) {
     const limitMatch = findAutoLimit(lastDomain, autoLimits);
     if (limitMatch && limitMatch.config && limitMatch.config.enabled) {
       const targetDomain = limitMatch.key;
@@ -242,7 +245,7 @@ async function processTimeElapsed() {
 
 async function scheduleLimitDeadline(domain, autoLimits, dailyUsage, todayKey, snoozedUntil) {
   await chrome.alarms.clear("autolimit_deadline");
-  if (!domain || !isWindowFocused) return;
+  if (!domain || (!isWindowFocused && !isPopupOpen)) return;
 
   const limitMatch = findAutoLimit(domain, autoLimits);
   if (!limitMatch || !limitMatch.config || !limitMatch.config.enabled) return;
@@ -271,7 +274,7 @@ function startRealtimeLoop() {
   if (!realtimeInterval) {
     lastTimestamp = Date.now();
     realtimeInterval = setInterval(async () => {
-      if (isWindowFocused) {
+      if (isWindowFocused || isPopupOpen) {
         await processTimeElapsed();
       }
     }, 1000);
@@ -336,7 +339,11 @@ async function checkTabLimitOnNavigation(domain, tabId = null) {
 chrome.windows.onFocusChanged.addListener(async (windowId) => {
   if (windowId === chrome.windows.WINDOW_ID_NONE) {
     await processTimeElapsed();
-    isWindowFocused = false;
+    // Di Chrome, membuka popup extension menghasilkan WINDOW_ID_NONE.
+    // Jika popup sedang terbuka, jangan matikan status fokus browser.
+    if (!isPopupOpen) {
+      isWindowFocused = false;
+    }
   } else {
     isWindowFocused = true;
     lastTimestamp = Date.now();
@@ -558,6 +565,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   } else if (message.type === "GET_REALTIME_USAGE") {
     (async () => {
+      isPopupOpen = true;
+      isWindowFocused = true;
+      if (message.currentDomain && !lastDomain) {
+        lastDomain = message.currentDomain;
+      }
       await processTimeElapsed();
       const todayKey = getTodayKey();
       const data = await chrome.storage.local.get([
@@ -566,18 +578,21 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         "snoozedUntil",
       ]);
       sendResponse({
-        activeDomain: lastDomain,
+        activeDomain: lastDomain || message.currentDomain || "",
         activeTimestamp: lastTimestamp,
-        isWindowFocused: isWindowFocused,
+        isWindowFocused: true,
         dailyUsage: data.dailyUsage || {},
         autoLimits: data.autoLimits || {},
         snoozedUntil: data.snoozedUntil || {},
       });
     })();
     return true;
-  } else if (message.type === "SYNC_REALTIME_USAGE") {
+  } else if (message.type === "POPUP_CLOSED" || message.type === "SYNC_REALTIME_USAGE") {
     (async () => {
       await processTimeElapsed();
+      if (message.type === "POPUP_CLOSED") {
+        isPopupOpen = false;
+      }
       sendResponse({ success: true });
     })();
     return true;
