@@ -620,6 +620,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   } else if (message.type === "SNOOZE_SITE") {
     sendResponse({ success: true });
     return true;
+  } else if (message.type === "CONTINUE_SITE") {
+    (async () => {
+      const { domain } = message;
+      if (domain) {
+        await unblockAndRestoreTabs(domain);
+        await updateBadge();
+      }
+      sendResponse({ success: true });
+    })();
+    return true;
   } else if (message.type === "GET_REALTIME_USAGE") {
     (async () => {
       isPopupOpen = true;

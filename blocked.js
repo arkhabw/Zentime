@@ -34,6 +34,7 @@ const I18N = {
         : `Kamu telah mencapai batas harian untuk <strong>${blockedDomain}</strong>. Luangkan waktu sejenak untuk rehat sejenak dari layar atau beralih ke hal lain.`),
     statSpentLbl: "Digunakan Hari Ini",
     statLimitLbl: mode === "timer" ? "Status Sesi" : "Batas Maksimal",
+    continueBtn: "Lanjutkan ke Website",
     closeTabBtn: "Tutup Tab Ini",
     snoozeBtn: mode === "timer" ? "+5 Menit Tambahan" : "Perpanjang 5 Menit Darurat",
     pomoResumeBtn: "Lewati Istirahat & Lanjut Fokus",
@@ -58,6 +59,7 @@ const I18N = {
         : `You've reached your daily screen time quota for <strong>${blockedDomain}</strong>. Take a moment to step back and recharge.`),
     statSpentLbl: "Used Today",
     statLimitLbl: mode === "timer" ? "Session Status" : "Daily Limit",
+    continueBtn: "Continue to Website",
     closeTabBtn: "Close This Tab",
     snoozeBtn: mode === "timer" ? "+5m Extra Focus" : "+5m Emergency Extension",
     pomoResumeBtn: "Skip Break & Resume Focus",
@@ -181,10 +183,25 @@ document.addEventListener("DOMContentLoaded", async () => {
   const pomoBreakCountdown = document.getElementById("pomoBreakCountdown");
   const pomoBreakFill = document.getElementById("pomoBreakFill");
   const pomoResumeBtn = document.getElementById("pomoResumeBtn");
+  const continueBtn = document.getElementById("continueBtn");
   const snoozeBtn = document.getElementById("snoozeBtn");
   const closeTabBtn = document.getElementById("closeTabBtn");
+  const blockedActions = document.querySelector(".blocked-actions");
   const usageStatCard = document.getElementById("usageStatCard");
   const mindfulTipText = document.getElementById("mindfulTipText");
+
+  if (mode === "timer") {
+    if (continueBtn) {
+      continueBtn.classList.remove("hidden");
+      continueBtn.className = "btn-primary";
+      continueBtn.textContent = t.continueBtn;
+    }
+    closeTabBtn.className = "btn-subtle";
+    snoozeBtn.className = "btn-subtle";
+    if (blockedActions && snoozeBtn && closeTabBtn) {
+      blockedActions.insertBefore(snoozeBtn, closeTabBtn);
+    }
+  }
 
   if (mode === "pomodoro") {
     pomoBreakBox.classList.remove("hidden");
@@ -280,6 +297,56 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (msg.type === "POMODORO_BREAK_ENDED" && msg.domain === blockedDomain) {
         syncPomoBreak();
       }
+    });
+  }
+
+  // Action: Continue to Website (Mode Timer)
+  if (continueBtn) {
+    continueBtn.addEventListener("click", async () => {
+      continueBtn.disabled = true;
+
+      try {
+        // 1. Bersihkan timer manual yang mungkin tersisa
+        const { manualTimers = {} } = await chrome.storage.local.get("manualTimers");
+        if (manualTimers[blockedDomain]) {
+          delete manualTimers[blockedDomain];
+          await chrome.storage.local.set({ manualTimers });
+        }
+        await chrome.alarms.clear(`timer_${blockedDomain}`);
+
+        // 2. Beri grace period jika domain memiliki auto-limit aktif yang tercapai
+        const { autoLimits = {}, snoozedUntil = {} } = await chrome.storage.local.get([
+          "autoLimits",
+          "snoozedUntil",
+        ]);
+        const limitMatch = autoLimits[blockedDomain];
+        if (limitMatch && limitMatch.enabled) {
+          const graceTime = Date.now() + 10 * 60 * 1000;
+          snoozedUntil[blockedDomain] = graceTime;
+          await chrome.storage.local.set({ snoozedUntil });
+          chrome.runtime.sendMessage({
+            type: "SNOOZE_SITE",
+            domain: blockedDomain,
+            until: graceTime,
+          });
+        }
+
+        // 3. Notifikasi background untuk unblock tab lain domain ini
+        await chrome.runtime.sendMessage({
+          type: "CONTINUE_SITE",
+          domain: blockedDomain,
+        });
+      } catch (err) {
+        console.warn("Continue site error:", err);
+      }
+
+      // 4. Redirect tab ke URL asal atau beranda website
+      const origUrl = urlParams.get("originalUrl");
+      const defaultUrl = blockedDomain.startsWith("http://") || blockedDomain.startsWith("https://")
+        ? blockedDomain
+        : `https://${blockedDomain}`;
+      const targetUrl = (origUrl && origUrl.startsWith("http")) ? origUrl : defaultUrl;
+      window.location.href = targetUrl;
     });
   }
 
