@@ -93,6 +93,24 @@ function formatMinutesSeconds(totalSeconds, lang) {
   return `${mins}${minUnit} ${secs}${secUnit}`;
 }
 
+function navigateToUrl(targetUrl) {
+  if (chrome.tabs && chrome.tabs.getCurrent) {
+    chrome.tabs.getCurrent((tab) => {
+      if (tab && tab.id) {
+        chrome.tabs.update(tab.id, { url: targetUrl }, () => {
+          if (chrome.runtime.lastError) {
+            window.location.href = targetUrl;
+          }
+        });
+      } else {
+        window.location.href = targetUrl;
+      }
+    });
+  } else {
+    window.location.href = targetUrl;
+  }
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
   const data = await chrome.storage.local.get([
     "preferredTheme",
@@ -289,7 +307,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const targetUrl = (origUrl && origUrl.startsWith("http"))
         ? origUrl
         : (session && session.originalUrl && session.originalUrl.startsWith("http") ? session.originalUrl : defaultUrl);
-      window.location.href = targetUrl;
+      navigateToUrl(targetUrl);
     });
 
     // Listen to background break ended notification
@@ -305,48 +323,58 @@ document.addEventListener("DOMContentLoaded", async () => {
     continueBtn.addEventListener("click", async () => {
       continueBtn.disabled = true;
 
-      try {
-        // 1. Bersihkan timer manual yang mungkin tersisa
-        const { manualTimers = {} } = await chrome.storage.local.get("manualTimers");
-        if (manualTimers[blockedDomain]) {
-          delete manualTimers[blockedDomain];
-          await chrome.storage.local.set({ manualTimers });
-        }
-        await chrome.alarms.clear(`timer_${blockedDomain}`);
-
-        // 2. Beri grace period jika domain memiliki auto-limit aktif yang tercapai
-        const { autoLimits = {}, snoozedUntil = {} } = await chrome.storage.local.get([
-          "autoLimits",
-          "snoozedUntil",
-        ]);
-        const limitMatch = autoLimits[blockedDomain];
-        if (limitMatch && limitMatch.enabled) {
-          const graceTime = Date.now() + 10 * 60 * 1000;
-          snoozedUntil[blockedDomain] = graceTime;
-          await chrome.storage.local.set({ snoozedUntil });
-          chrome.runtime.sendMessage({
-            type: "SNOOZE_SITE",
-            domain: blockedDomain,
-            until: graceTime,
-          });
-        }
-
-        // 3. Notifikasi background untuk unblock tab lain domain ini
-        await chrome.runtime.sendMessage({
-          type: "CONTINUE_SITE",
-          domain: blockedDomain,
-        });
-      } catch (err) {
-        console.warn("Continue site error:", err);
-      }
-
-      // 4. Redirect tab ke URL asal atau beranda website
+      // 1. Tentukan target URL
       const origUrl = urlParams.get("originalUrl");
-      const defaultUrl = blockedDomain.startsWith("http://") || blockedDomain.startsWith("https://")
+      const defaultUrl = (blockedDomain.startsWith("http://") || blockedDomain.startsWith("https://"))
         ? blockedDomain
         : `https://${blockedDomain}`;
       const targetUrl = (origUrl && origUrl.startsWith("http")) ? origUrl : defaultUrl;
-      window.location.href = targetUrl;
+
+      try {
+        // 2. Bersihkan timer manual yang mungkin tersisa
+        const { manualTimers = {}, snoozedUntil = {}, autoLimits = {} } = await chrome.storage.local.get([
+          "manualTimers",
+          "snoozedUntil",
+          "autoLimits",
+        ]);
+
+        delete manualTimers[blockedDomain];
+        const cleanDomain = blockedDomain.toLowerCase().replace(/^www\./, "");
+        for (const k of Object.keys(manualTimers)) {
+          if (k.toLowerCase().replace(/^www\./, "") === cleanDomain) {
+            delete manualTimers[k];
+          }
+        }
+        await chrome.storage.local.set({ manualTimers });
+        chrome.alarms.clear(`timer_${blockedDomain}`);
+
+        // 3. Beri grace period 15 menit agar tidak langsung mental terblokir jika batas harian tercapai
+        const graceTime = Date.now() + 15 * 60 * 1000;
+        snoozedUntil[blockedDomain] = graceTime;
+        snoozedUntil[cleanDomain] = graceTime;
+        snoozedUntil[`www.${cleanDomain}`] = graceTime;
+        for (const k of Object.keys(autoLimits)) {
+          if (k.toLowerCase().replace(/^www\./, "") === cleanDomain) {
+            snoozedUntil[k] = graceTime;
+          }
+        }
+        await chrome.storage.local.set({ snoozedUntil });
+
+        // 4. Notifikasi background secara aman (non-blocking)
+        chrome.runtime.sendMessage({
+          type: "CONTINUE_SITE",
+          domain: blockedDomain,
+        }, () => {
+          if (chrome.runtime.lastError) {
+            // abaikan jika tidak ada receiver aktif
+          }
+        });
+      } catch (err) {
+        console.warn("Continue site storage error:", err);
+      }
+
+      // 5. Navigasi kembali ke website
+      navigateToUrl(targetUrl);
     });
   }
 
@@ -391,6 +419,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       ? blockedDomain
       : `https://${blockedDomain}`;
     const targetUrl = (origUrl && origUrl.startsWith("http")) ? origUrl : defaultUrl;
-    window.location.href = targetUrl;
+    navigateToUrl(targetUrl);
   });
 });
