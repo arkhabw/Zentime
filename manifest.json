@@ -8,8 +8,32 @@
     "alarms",
     "notifications",
     "storage",
-    "offscreen"
+    "offscreen",
+    "contextMenus"
   ],
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Alt+Shift+Z",
+        "mac": "Alt+Shift+Z"
+      },
+      "description": "Buka Popup Zentime / Open Zentime Focus Popup"
+    },
+    "quick_start_pomo": {
+      "suggested_key": {
+        "default": "Alt+Shift+S",
+        "mac": "Alt+Shift+S"
+      },
+      "description": "Mulai Sesi Fokus 25m di situs aktif / Start 25m Focus Session"
+    },
+    "quick_block_break": {
+      "suggested_key": {
+        "default": "Alt+Shift+B",
+        "mac": "Alt+Shift+B"
+      },
+      "description": "Jeda sejenak di tab saat ini / Mindful Pause on current tab"
+    }
+  },
   "action": {
     "default_popup": "popup.html",
     "default_icon": {

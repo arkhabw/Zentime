@@ -79,6 +79,9 @@ async function cleanupOldDailyUsage(dailyUsage) {
 // -------------------------------------------------------------
 async function playGentleChime() {
   try {
+    const { soundEnabled = true } = await chrome.storage.local.get("soundEnabled");
+    if (!soundEnabled) return;
+
     const existingContexts = await chrome.runtime.getContexts({
       contextTypes: ["OFFSCREEN_DOCUMENT"],
     });
@@ -319,6 +322,7 @@ chrome.runtime.onInstalled.addListener(async () => {
     await chrome.storage.local.set({ dailyUsage });
   }
   startRealtimeLoop();
+  setupContextMenus();
 });
 
 chrome.runtime.onStartup.addListener(async () => {
@@ -328,6 +332,7 @@ chrome.runtime.onStartup.addListener(async () => {
     await chrome.storage.local.set({ dailyUsage });
   }
   startRealtimeLoop();
+  setupContextMenus();
 });
 
 // -------------------------------------------------------------
@@ -735,3 +740,113 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
   return true;
 });
+
+// -------------------------------------------------------------
+// 9. Context Menus & Global Keyboard Shortcuts (Phase 3)
+// -------------------------------------------------------------
+function setupContextMenus() {
+  if (!chrome.contextMenus) return;
+  chrome.contextMenus.removeAll(() => {
+    chrome.contextMenus.create({
+      id: "zentime_quick_pomo",
+      title: "🍅 Mulai Fokus 25m di Website Ini",
+      contexts: ["page"],
+    });
+    chrome.contextMenus.create({
+      id: "zentime_open_limits",
+      title: "🛑 Pasang Batas Harian...",
+      contexts: ["page"],
+    });
+    chrome.contextMenus.create({
+      id: "zentime_open_insights",
+      title: "📊 Buka Wawasan Layar (7 Hari)",
+      contexts: ["page", "action"],
+    });
+  });
+}
+
+// Mulai Pomodoro Cepat dari Shortcut atau Context Menu
+async function startQuickPomodoro(domain, originalUrl = "") {
+  if (!domain) return;
+  const focusMinutes = 25;
+  const breakMinutes = 5;
+  const totalCycles = 4;
+  const longBreakMinutes = 15;
+  const startTime = Date.now();
+  const endTime = startTime + focusMinutes * 60 * 1000;
+
+  await chrome.alarms.clear(`pomo_focus_${domain}`);
+  await chrome.alarms.clear(`pomo_break_${domain}`);
+
+  const { pomodoroSessions = {} } = await chrome.storage.local.get("pomodoroSessions");
+  pomodoroSessions[domain] = {
+    phase: "focus",
+    cycle: 1,
+    totalCycles,
+    focusMinutes,
+    breakMinutes,
+    longBreakMinutes,
+    startTime,
+    endTime,
+    originalUrl: (originalUrl && originalUrl.startsWith("http")) ? originalUrl : "",
+  };
+
+  await chrome.storage.local.set({ pomodoroSessions });
+  await chrome.alarms.create(`pomo_focus_${domain}`, { delayInMinutes: focusMinutes });
+  await unblockAndRestoreTabs(domain);
+  await updateBadge();
+
+  // Desktop notification
+  const { preferredLanguage = "id" } = await chrome.storage.local.get("preferredLanguage");
+  const title = preferredLanguage === "en" ? "🍅 25m Focus Session Started!" : "🍅 Sesi Fokus 25m Dimulai!";
+  const message = preferredLanguage === "en"
+    ? `Pomodoro focus session is now active on ${domain} (25 min). Stay mindful!`
+    : `Sesi fokus 25 menit aktif di ${domain}. Fokus dan selesaikan tugasmu!`;
+
+  chrome.notifications.create(`quick_pomo_${domain}_${Date.now()}`, {
+    type: "basic",
+    iconUrl: "icons/icon128.png",
+    title,
+    message,
+    priority: 1,
+  });
+}
+
+// Handler Klik Context Menu
+if (chrome.contextMenus && chrome.contextMenus.onClicked) {
+  chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+    if (!tab || !tab.url) return;
+    const domain = getDomainFromUrl(tab.url);
+
+    if (info.menuItemId === "zentime_quick_pomo") {
+      if (domain) {
+        await startQuickPomodoro(domain, tab.url);
+      }
+    } else if (info.menuItemId === "zentime_open_limits") {
+      await chrome.storage.local.set({ activePopupTab: "tab-auto" });
+      chrome.action.openPopup?.().catch(() => {});
+    } else if (info.menuItemId === "zentime_open_insights") {
+      await chrome.storage.local.set({ activePopupTab: "tab-insights" });
+      chrome.action.openPopup?.().catch(() => {});
+    }
+  });
+}
+
+// Handler Keyboard Shortcuts (chrome.commands)
+if (chrome.commands && chrome.commands.onCommand) {
+  chrome.commands.onCommand.addListener(async (command) => {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tab || !tab.url) return;
+    const domain = getDomainFromUrl(tab.url);
+
+    if (command === "quick_start_pomo") {
+      if (domain) {
+        await startQuickPomodoro(domain, tab.url);
+      }
+    } else if (command === "quick_block_break") {
+      if (domain) {
+        await redirectToBlockPage(domain, "pause", `manual=true`);
+      }
+    }
+  });
+}

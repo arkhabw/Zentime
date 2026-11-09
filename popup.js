@@ -86,6 +86,19 @@ const I18N = {
     stepMinusAria: "Kurang 5 menit",
     stepPlusAria: "Tambah 5 menit",
     langSliderTitle: "Ganti Bahasa (ID / EN)",
+    settingsTitle: "Pengaturan",
+    settingsAria: "Pengaturan",
+    shortcutsSection: "Pintasan Keyboard",
+    shortcutsDesc: "Jalankan fitur Zentime langsung dari tombol keyboard.",
+    shortcutOpenPopup: "Buka Popup Zentime",
+    shortcutQuickPomo: "Mulai Fokus 25m",
+    shortcutQuickPause: "Jeda Sejenak (Breath)",
+    customizeShortcutsBtn: "⚙️ Ubah Pintasan di Chrome",
+    soundSection: "Suara & Audio",
+    soundChimeTitle: "Lonceng Lembut 10 Detik",
+    soundChimeDesc: "Mainkan audio harmonik saat sesi selesai.",
+    offlineBadge: "100% Offline & Privat",
+    aboutText: "Zentime tidak pernah mengumpulkan atau mengirimkan riwayat browsing kamu ke server mana pun.",
   },
   en: {
     brandSubtitle: "Focus",
@@ -164,6 +177,19 @@ const I18N = {
     stepMinusAria: "Decrease 5 minutes",
     stepPlusAria: "Increase 5 minutes",
     langSliderTitle: "Switch Language (ID / EN)",
+    settingsTitle: "Settings",
+    settingsAria: "Settings",
+    shortcutsSection: "Keyboard Shortcuts",
+    shortcutsDesc: "Trigger Zentime features directly from your keyboard.",
+    shortcutOpenPopup: "Open Zentime Popup",
+    shortcutQuickPomo: "Start 25m Focus",
+    shortcutQuickPause: "Take a Breath (Pause)",
+    customizeShortcutsBtn: "⚙️ Customize in Chrome",
+    soundSection: "Audio & Chimes",
+    soundChimeTitle: "10-Second Gentle Chime",
+    soundChimeDesc: "Play harmonic audio chime when a session finishes.",
+    offlineBadge: "100% Offline & Private",
+    aboutText: "Zentime never collects or transmits your browsing data to any external server.",
   },
 };
 
@@ -293,6 +319,11 @@ const langBtnEn = document.getElementById("langBtnEn");
 const themeToggleBtn = document.getElementById("themeToggleBtn");
 const themeIconDark = document.getElementById("themeIconDark");
 const themeIconLight = document.getElementById("themeIconLight");
+const settingsBtn = document.getElementById("settingsBtn");
+const settingsModal = document.getElementById("settingsModal");
+const closeSettingsBtn = document.getElementById("closeSettingsBtn");
+const openShortcutsPageBtn = document.getElementById("openShortcutsPageBtn");
+const soundToggleCheckbox = document.getElementById("soundToggleCheckbox");
 
 const siteFavicon = document.getElementById("siteFavicon");
 const currentDomainEl = document.getElementById("currentDomain");
@@ -393,6 +424,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   await initLanguage();
   initTheme();
   setupTabs();
+  setupSettingsControls();
   setupPresets();
   setupPomoControls();
   setupAutoModeControls();
@@ -497,6 +529,10 @@ function applyLanguage(lang, shouldRefresh = true) {
 
   // Update aria-labels
   if (themeToggleBtn) themeToggleBtn.setAttribute("aria-label", t("themeAria"));
+  if (settingsBtn) {
+    settingsBtn.setAttribute("aria-label", t("settingsAria"));
+    settingsBtn.setAttribute("title", t("settingsTitle"));
+  }
   if (stepMinusBtn) stepMinusBtn.setAttribute("aria-label", t("stepMinusAria"));
   if (stepPlusBtn) stepPlusBtn.setAttribute("aria-label", t("stepPlusAria"));
 
@@ -605,6 +641,83 @@ function switchTab(tabId) {
       renderMode4Insights();
     }
   }
+}
+
+// -------------------------------------------------------------
+// 3B. Setup Settings Modal & Shortcuts (Phase 3)
+// -------------------------------------------------------------
+function setupSettingsControls() {
+  if (!settingsBtn || !settingsModal) return;
+
+  // 1. Sync Audio Switch
+  chrome.storage.local.get("soundEnabled", (data) => {
+    if (soundToggleCheckbox) {
+      soundToggleCheckbox.checked = data.soundEnabled !== false;
+    }
+  });
+
+  if (soundToggleCheckbox) {
+    soundToggleCheckbox.addEventListener("change", () => {
+      chrome.storage.local.set({ soundEnabled: soundToggleCheckbox.checked });
+    });
+  }
+
+  // 2. Open / Close Modal
+  settingsBtn.addEventListener("click", () => {
+    settingsModal.classList.remove("hidden");
+    loadRegisteredShortcuts();
+  });
+
+  if (closeSettingsBtn) {
+    closeSettingsBtn.addEventListener("click", () => {
+      settingsModal.classList.add("hidden");
+    });
+  }
+
+  settingsModal.addEventListener("click", (e) => {
+    if (e.target === settingsModal) {
+      settingsModal.classList.add("hidden");
+    }
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !settingsModal.classList.contains("hidden")) {
+      settingsModal.classList.add("hidden");
+    }
+  });
+
+  // 3. Customize Shortcuts Button -> Opens chrome://extensions/shortcuts
+  if (openShortcutsPageBtn) {
+    openShortcutsPageBtn.addEventListener("click", () => {
+      chrome.tabs.create({ url: "chrome://extensions/shortcuts" });
+    });
+  }
+}
+
+// Helper: Membaca shortcuts yang terdaftar secara dinamis dari Chrome jika didukung
+function loadRegisteredShortcuts() {
+  if (!chrome.commands || !chrome.commands.getAll) return;
+  chrome.commands.getAll((commands) => {
+    if (!commands || !commands.length) return;
+    commands.forEach((cmd) => {
+      if (!cmd.shortcut) return;
+      let targetPillContainer = null;
+      if (cmd.name === "_execute_action") {
+        targetPillContainer = document.querySelector(".shortcut-item:nth-child(1) .shortcut-keys");
+      } else if (cmd.name === "quick_start_pomo") {
+        targetPillContainer = document.querySelector(".shortcut-item:nth-child(2) .shortcut-keys");
+      } else if (cmd.name === "quick_block_break") {
+        targetPillContainer = document.querySelector(".shortcut-item:nth-child(3) .shortcut-keys");
+      }
+
+      if (targetPillContainer) {
+        const parts = cmd.shortcut.split("+").map((s) => s.trim());
+        targetPillContainer.innerHTML = parts
+          .map((k, idx) => `<kbd>${k}</kbd>${idx < parts.length - 1 ? '<span class="key-sep">+</span>' : ''}`)
+          .join("");
+      }
+    });
+  });
 }
 
 // -------------------------------------------------------------

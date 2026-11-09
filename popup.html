@@ -39,6 +39,13 @@
             <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
           </svg>
         </button>
+        <!-- Settings Toggle (Gear) -->
+        <button id="settingsBtn" class="theme-toggle" type="button" aria-label="Pengaturan" title="Pengaturan">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+        </button>
       </div>
     </header>
 
@@ -341,6 +348,81 @@
         </section>
       </div>
     </main>
+
+    <!-- ============================================== -->
+    <!-- SETTINGS MODAL / PANEL (PENGATURAN)           -->
+    <!-- ============================================== -->
+    <div id="settingsModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="settingsModalTitle">
+      <div class="modal-card">
+        <div class="modal-header">
+          <span class="modal-title" id="settingsModalTitle" data-i18n="settingsTitle">Pengaturan</span>
+          <button id="closeSettingsBtn" class="modal-close-btn" type="button" aria-label="Tutup pengaturan">✕</button>
+        </div>
+
+        <div class="modal-body">
+          <!-- 1. Keyboard Shortcuts Card -->
+          <div class="settings-card">
+            <div class="settings-card-header">
+              <span class="settings-card-title" data-i18n="shortcutsSection">Pintasan Keyboard</span>
+              <span class="settings-card-desc" data-i18n="shortcutsDesc">Jalankan fitur Zentime langsung dari tombol keyboard.</span>
+            </div>
+
+            <div class="shortcuts-list">
+              <div class="shortcut-item">
+                <span class="shortcut-label" data-i18n="shortcutOpenPopup">Buka Popup Zentime</span>
+                <div class="shortcut-keys">
+                  <kbd>Alt</kbd><span class="key-sep">+</span><kbd>Shift</kbd><span class="key-sep">+</span><kbd>Z</kbd>
+                </div>
+              </div>
+
+              <div class="shortcut-item">
+                <span class="shortcut-label" data-i18n="shortcutQuickPomo">Mulai Fokus 25m</span>
+                <div class="shortcut-keys">
+                  <kbd>Alt</kbd><span class="key-sep">+</span><kbd>Shift</kbd><span class="key-sep">+</span><kbd>S</kbd>
+                </div>
+              </div>
+
+              <div class="shortcut-item">
+                <span class="shortcut-label" data-i18n="shortcutQuickPause">Jeda Sejenak (Breath)</span>
+                <div class="shortcut-keys">
+                  <kbd>Alt</kbd><span class="key-sep">+</span><kbd>Shift</kbd><span class="key-sep">+</span><kbd>B</kbd>
+                </div>
+              </div>
+            </div>
+
+            <button id="openShortcutsPageBtn" class="btn-subtle btn-full" type="button" data-i18n="customizeShortcutsBtn">
+              ⚙️ Ubah Pintasan di Chrome
+            </button>
+          </div>
+
+          <!-- 2. Sound Preferences Card -->
+          <div class="settings-card">
+            <div class="settings-card-header">
+              <span class="settings-card-title" data-i18n="soundSection">Suara & Audio</span>
+            </div>
+            <div class="toggle-row">
+              <div class="toggle-info">
+                <span class="toggle-title" data-i18n="soundChimeTitle">Lonceng Lembut 10 Detik</span>
+                <span class="toggle-desc" data-i18n="soundChimeDesc">Mainkan audio harmonik saat sesi selesai.</span>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="soundToggleCheckbox" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <!-- 3. About & Privacy Card -->
+          <div class="settings-card about-card">
+            <div class="about-row">
+              <span class="about-app">Zentime v1.0.0</span>
+              <span class="about-badge" data-i18n="offlineBadge">100% Offline & Privat</span>
+            </div>
+            <p class="about-text" data-i18n="aboutText">Zentime tidak pernah mengumpulkan atau mengirimkan riwayat browsing kamu ke server mana pun.</p>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script src="popup.js"></script>
