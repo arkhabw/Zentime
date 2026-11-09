@@ -197,18 +197,21 @@ async function processTimeElapsed() {
   // Hanya hitung waktu jika domain aktif valid dan browser sedang dilihat
   if (elapsedSeconds > 0 && lastDomain && isBrowsingActive && elapsedSeconds < 3600) {
     const limitMatch = findAutoLimit(lastDomain, autoLimits);
+    const targetDomain = (limitMatch && limitMatch.config && limitMatch.config.enabled)
+      ? limitMatch.key
+      : lastDomain;
+
+    if (!dailyUsage[todayKey]) {
+      dailyUsage[todayKey] = {};
+    }
+    if (!dailyUsage[todayKey][targetDomain]) {
+      dailyUsage[todayKey][targetDomain] = { spentSeconds: 0, notified: false };
+    }
+
+    dailyUsage[todayKey][targetDomain].spentSeconds += elapsedSeconds;
+
+    // Evaluasi aturan limit & blocking jika website ini dibatasi
     if (limitMatch && limitMatch.config && limitMatch.config.enabled) {
-      const targetDomain = limitMatch.key;
-
-      if (!dailyUsage[todayKey]) {
-        dailyUsage[todayKey] = {};
-      }
-      if (!dailyUsage[todayKey][targetDomain]) {
-        dailyUsage[todayKey][targetDomain] = { spentSeconds: 0, notified: false };
-      }
-
-      dailyUsage[todayKey][targetDomain].spentSeconds += elapsedSeconds;
-
       const limitMinutes = limitMatch.config.dailyLimitMinutes;
       const limitSeconds = limitMinutes * 60;
       const currentSpent = dailyUsage[todayKey][targetDomain].spentSeconds;
@@ -244,9 +247,9 @@ async function processTimeElapsed() {
           await redirectToBlockPage(targetDomain, "limit");
         }
       }
-
-      await chrome.storage.local.set({ dailyUsage });
     }
+
+    await chrome.storage.local.set({ dailyUsage });
   }
 
   // Identifikasi domain aktif saat ini

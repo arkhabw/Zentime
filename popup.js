@@ -18,21 +18,21 @@ const I18N = {
     tabAuto: "Batas",
     tabInsights: "Wawasan",
     totalThisWeek: "Total Minggu Ini",
-    monitoredUsageOnly: "Dari website yang dibatasi",
+    monitoredUsageOnly: "Total waktu aktif di browser",
     dailyAverage: "Rata-rata / Hari",
     mostActiveDay: "Hari Teraktif",
     last7DaysChart: "Aktivitas 7 Hari Terakhir",
     past7DaysBadge: "7 Hari",
     topSitesTitle: "Situs Teratas Minggu Ini",
     noDataThisWeekTitle: "Belum ada aktivitas minggu ini.",
-    noDataThisWeekSub: "Waktu dari situs yang kamu batasi akan tercatat otomatis di sini.",
+    noDataThisWeekSub: "Waktu browsing kamu akan tercatat otomatis di sini seiring penggunaan browser.",
     shareOfWeek: "Porsi Mingguan",
     topSiteDay: "Situs Utama",
     totalForDay: "Total",
     activityForDay: "Aktivitas",
     backToWeekBtn: "← 7 Hari",
     noDataForDayTitle: "Tidak ada aktivitas pada hari ini.",
-    noDataForDaySub: "Belum ada rekaman waktu situs yang dibatasi untuk hari ini.",
+    noDataForDaySub: "Belum ada rekaman waktu browsing untuk hari ini.",
     monthsShort: ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agt", "Sep", "Okt", "Nov", "Des"],
     perDaySuffix: " / hari",
     todayLabel: "Hari Ini",
@@ -96,21 +96,21 @@ const I18N = {
     tabAuto: "Limits",
     tabInsights: "Insights",
     totalThisWeek: "Total This Week",
-    monitoredUsageOnly: "From monitored websites",
+    monitoredUsageOnly: "Total active browser screen time",
     dailyAverage: "Daily Average",
     mostActiveDay: "Most Active Day",
     last7DaysChart: "Last 7 Days Activity",
     past7DaysBadge: "7 Days",
     topSitesTitle: "Top Sites This Week",
     noDataThisWeekTitle: "No weekly activity yet.",
-    noDataThisWeekSub: "Usage time from your monitored websites will automatically accumulate here.",
+    noDataThisWeekSub: "Your browsing screen time will automatically accumulate here as you browse.",
     shareOfWeek: "Share of Week",
     topSiteDay: "Top Site",
     totalForDay: "Total",
     activityForDay: "Activity",
     backToWeekBtn: "← 7 Days",
     noDataForDayTitle: "No activity on this day.",
-    noDataForDaySub: "No monitored website usage was recorded for this day.",
+    noDataForDaySub: "No browsing activity recorded for this day.",
     monthsShort: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
     perDaySuffix: " / day",
     todayLabel: "Today",
@@ -1368,10 +1368,10 @@ function calculate7DayAnalytics() {
   let activeTargetDomain = "";
   if (liveTracker.activeDomain) {
     const limitMatch = findAutoLimit(liveTracker.activeDomain, autoLimits);
-    if (limitMatch && limitMatch.config && limitMatch.config.enabled) {
-      activeTargetDomain = limitMatch.key;
-      activeLiveOffset = Math.max(0, Math.floor((Date.now() - liveTracker.activeTimestamp) / 1000));
-    }
+    activeTargetDomain = (limitMatch && limitMatch.config && limitMatch.config.enabled)
+      ? limitMatch.key
+      : liveTracker.activeDomain;
+    activeLiveOffset = Math.max(0, Math.floor((Date.now() - liveTracker.activeTimestamp) / 1000));
   }
 
   let totalWeeklySeconds = 0;
