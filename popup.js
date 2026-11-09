@@ -26,6 +26,14 @@ const I18N = {
     topSitesTitle: "Situs Teratas Minggu Ini",
     noDataThisWeekTitle: "Belum ada aktivitas minggu ini.",
     noDataThisWeekSub: "Waktu dari situs yang kamu batasi akan tercatat otomatis di sini.",
+    shareOfWeek: "Porsi Mingguan",
+    topSiteDay: "Situs Utama",
+    totalForDay: "Total",
+    activityForDay: "Aktivitas",
+    backToWeekBtn: "← 7 Hari",
+    noDataForDayTitle: "Tidak ada aktivitas pada hari ini.",
+    noDataForDaySub: "Belum ada rekaman waktu situs yang dibatasi untuk hari ini.",
+    monthsShort: ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agt", "Sep", "Okt", "Nov", "Des"],
     perDaySuffix: " / hari",
     todayLabel: "Hari Ini",
     dayNames: ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"],
@@ -96,6 +104,14 @@ const I18N = {
     topSitesTitle: "Top Sites This Week",
     noDataThisWeekTitle: "No weekly activity yet.",
     noDataThisWeekSub: "Usage time from your monitored websites will automatically accumulate here.",
+    shareOfWeek: "Share of Week",
+    topSiteDay: "Top Site",
+    totalForDay: "Total",
+    activityForDay: "Activity",
+    backToWeekBtn: "← 7 Days",
+    noDataForDayTitle: "No activity on this day.",
+    noDataForDaySub: "No monitored website usage was recorded for this day.",
+    monthsShort: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
     perDaySuffix: " / day",
     todayLabel: "Today",
     dayNames: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
@@ -351,13 +367,24 @@ const allLimitsCount = document.getElementById("allLimitsCount");
 const emptyLimitsMsg = document.getElementById("emptyLimitsMsg");
 
 // Mode 4 (Wawasan / 7-Day Screen Time Insights) Elements
+const insightsTotalLabel = document.getElementById("insightsTotalLabel");
 const insightsTotalWeek = document.getElementById("insightsTotalWeek");
+const insightsSubtext = document.getElementById("insightsSubtext");
+const insightsMetric2Label = document.getElementById("insightsMetric2Label");
 const insightsDailyAvg = document.getElementById("insightsDailyAvg");
+const insightsMetric3Label = document.getElementById("insightsMetric3Label");
 const insightsPeakDay = document.getElementById("insightsPeakDay");
+const insightsChartTitle = document.getElementById("insightsChartTitle");
+const insightsChartBadge = document.getElementById("insightsChartBadge");
 const insightsBarChart = document.getElementById("insightsBarChart");
+const insightsSitesTitle = document.getElementById("insightsSitesTitle");
 const insightsSitesList = document.getElementById("insightsSitesList");
 const insightsSitesCount = document.getElementById("insightsSitesCount");
 const insightsEmptyMsg = document.getElementById("insightsEmptyMsg");
+const insightsEmptyMain = document.getElementById("insightsEmptyMain");
+const insightsEmptySub = document.getElementById("insightsEmptySub");
+
+let selectedInsightsDateKey = null; // null = 7 days weekly mode, or "YYYY-MM-DD" for single day drilldown
 
 // -------------------------------------------------------------
 // Inisialisasi
@@ -393,6 +420,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   startTimerBtn.addEventListener("click", handleStartTimer);
   cancelTimerBtn.addEventListener("click", handleCancelTimer);
+
+  if (insightsChartBadge) {
+    insightsChartBadge.addEventListener("click", () => {
+      if (selectedInsightsDateKey) {
+        selectedInsightsDateKey = null;
+        renderMode4Insights();
+      }
+    });
+  }
 });
 
 // -------------------------------------------------------------
@@ -1346,20 +1382,33 @@ function calculate7DayAnalytics() {
   const dayStats = days.map((day) => {
     const usageForDay = dailyUsage[day.dateKey] || {};
     let daySeconds = 0;
+    const dayDomainTotals = {};
 
     for (const [dom, record] of Object.entries(usageForDay)) {
       let s = record.spentSeconds || 0;
       if (day.isToday && dom === activeTargetDomain) {
         s += activeLiveOffset;
       }
-      daySeconds += s;
-      domainTotals[dom] = (domainTotals[dom] || 0) + s;
+      if (s > 0) {
+        daySeconds += s;
+        dayDomainTotals[dom] = s;
+        domainTotals[dom] = (domainTotals[dom] || 0) + s;
+      }
     }
 
     if (day.isToday && activeTargetDomain && !usageForDay[activeTargetDomain] && activeLiveOffset > 0) {
       daySeconds += activeLiveOffset;
+      dayDomainTotals[activeTargetDomain] = activeLiveOffset;
       domainTotals[activeTargetDomain] = (domainTotals[activeTargetDomain] || 0) + activeLiveOffset;
     }
+
+    const dayTopSites = Object.entries(dayDomainTotals)
+      .sort((a, b) => b[1] - a[1])
+      .map(([domain, seconds]) => ({
+        domain,
+        seconds,
+        percentOfTotal: daySeconds > 0 ? Math.round((seconds / daySeconds) * 100) : 0,
+      }));
 
     totalWeeklySeconds += daySeconds;
     if (daySeconds > maxDaySeconds) {
@@ -1374,6 +1423,7 @@ function calculate7DayAnalytics() {
     return {
       ...day,
       seconds: daySeconds,
+      topSites: dayTopSites,
     };
   });
 
@@ -1410,26 +1460,81 @@ function renderMode4Insights() {
     topSites,
   } = calculate7DayAnalytics();
 
-  // 1. Weekly Summary Cards
-  if (insightsTotalWeek) {
-    insightsTotalWeek.textContent = formatHoursMinutes(totalWeeklySeconds);
-  }
-
-  if (insightsDailyAvg) {
-    insightsDailyAvg.textContent = `${formatHoursMinutes(dailyAverageSeconds)}${t("perDaySuffix")}`;
-  }
-
-  if (insightsPeakDay) {
-    if (peakDay && peakDay.seconds > 0) {
-      const dayName = t("dayNames")[peakDay.dayOfWeek] || "";
-      insightsPeakDay.textContent = `${dayName} (${formatHoursMinutes(peakDay.seconds)})`;
-    } else {
-      insightsPeakDay.textContent = "-";
+  // Cari apakah hari yang dipilih masih valid dalam 7 hari terakhir
+  let selectedDay = null;
+  if (selectedInsightsDateKey) {
+    selectedDay = dayStats.find((d) => d.dateKey === selectedInsightsDateKey) || null;
+    if (!selectedDay) {
+      selectedInsightsDateKey = null;
     }
   }
 
-  // 2. 7-Day Vertical Bar Chart (In-Place / Stable DOM)
+  const isDayFiltered = selectedDay !== null;
+
+  // 1. Weekly & Day-Filtered Summary Cards
+  if (isDayFiltered) {
+    const dayFullName = t("dayFullNames")[selectedDay.dayOfWeek] || "";
+    const dayMonth = t("monthsShort")[selectedDay.dateObj.getMonth()];
+    const dayNum = selectedDay.dateObj.getDate();
+    const dateHuman = currentLang === "id" ? `${dayNum} ${dayMonth}` : `${dayMonth} ${dayNum}`;
+    const dayTopSite = selectedDay.topSites[0]?.domain || "-";
+    const shareOfWeek = totalWeeklySeconds > 0 ? Math.round((selectedDay.seconds / totalWeeklySeconds) * 100) : 0;
+
+    if (insightsTotalLabel) insightsTotalLabel.textContent = `${t("totalForDay")} ${dayFullName}`;
+    if (insightsTotalWeek) insightsTotalWeek.textContent = formatHoursMinutes(selectedDay.seconds);
+    if (insightsSubtext) insightsSubtext.textContent = selectedDay.isToday ? `${dateHuman} • ${t("todayLabel")}` : dateHuman;
+
+    if (insightsMetric2Label) insightsMetric2Label.textContent = t("shareOfWeek");
+    if (insightsDailyAvg) insightsDailyAvg.textContent = `${shareOfWeek}%`;
+
+    if (insightsMetric3Label) insightsMetric3Label.textContent = t("topSiteDay");
+    if (insightsPeakDay) insightsPeakDay.textContent = dayTopSite;
+
+    if (insightsChartBadge) {
+      insightsChartBadge.textContent = t("backToWeekBtn");
+      insightsChartBadge.classList.add("is-filtered");
+      insightsChartBadge.setAttribute("title", t("backToWeekBtn"));
+    }
+    if (insightsSitesTitle) {
+      insightsSitesTitle.textContent = `${t("activityForDay")} ${dayFullName}`;
+    }
+    if (insightsEmptyMain) insightsEmptyMain.textContent = t("noDataForDayTitle");
+    if (insightsEmptySub) insightsEmptySub.textContent = t("noDataForDaySub");
+  } else {
+    // Tampilan Mingguan Standar (7 Hari)
+    if (insightsTotalLabel) insightsTotalLabel.textContent = t("totalThisWeek");
+    if (insightsTotalWeek) insightsTotalWeek.textContent = formatHoursMinutes(totalWeeklySeconds);
+    if (insightsSubtext) insightsSubtext.textContent = t("monitoredUsageOnly");
+
+    if (insightsMetric2Label) insightsMetric2Label.textContent = t("dailyAverage");
+    if (insightsDailyAvg) insightsDailyAvg.textContent = `${formatHoursMinutes(dailyAverageSeconds)}${t("perDaySuffix")}`;
+
+    if (insightsMetric3Label) insightsMetric3Label.textContent = t("mostActiveDay");
+    if (insightsPeakDay) {
+      if (peakDay && peakDay.seconds > 0) {
+        const dayName = t("dayNames")[peakDay.dayOfWeek] || "";
+        insightsPeakDay.textContent = `${dayName} (${formatHoursMinutes(peakDay.seconds)})`;
+      } else {
+        insightsPeakDay.textContent = "-";
+      }
+    }
+
+    if (insightsChartBadge) {
+      insightsChartBadge.textContent = t("past7DaysBadge");
+      insightsChartBadge.classList.remove("is-filtered");
+      insightsChartBadge.setAttribute("title", t("past7DaysBadge"));
+    }
+    if (insightsSitesTitle) {
+      insightsSitesTitle.textContent = t("topSitesTitle");
+    }
+    if (insightsEmptyMain) insightsEmptyMain.textContent = t("noDataThisWeekTitle");
+    if (insightsEmptySub) insightsEmptySub.textContent = t("noDataThisWeekSub");
+  }
+
+  // 2. 7-Day Vertical Bar Chart (In-Place / Stable DOM with Selection Support)
   if (insightsBarChart) {
+    insightsBarChart.classList.toggle("has-selection", isDayFiltered);
+
     const existingCols = insightsBarChart.querySelectorAll(".chart-col");
     const needsFullRebuild = existingCols.length !== 7 ||
       existingCols[6]?.getAttribute("data-day") !== dayStats[6]?.dateKey;
@@ -1442,12 +1547,13 @@ function renderMode4Insights() {
         const dayShortName = t("dayNames")[day.dayOfWeek] || "";
         const formattedTime = formatHoursMinutes(day.seconds);
         const tooltipText = `${dayFullName}: ${formattedTime}`;
+        const isSelected = selectedInsightsDateKey === day.dateKey;
 
         const col = document.createElement("div");
-        col.className = `chart-col${day.isToday ? " is-today" : ""}`;
+        col.className = `chart-col${day.isToday ? " is-today" : ""}${isSelected ? " selected" : ""}`;
         col.setAttribute("data-day", day.dateKey);
         col.setAttribute("tabindex", "0");
-        col.setAttribute("role", "img");
+        col.setAttribute("role", "button");
         col.setAttribute("aria-label", tooltipText);
 
         col.innerHTML = `
@@ -1459,9 +1565,12 @@ function renderMode4Insights() {
         `;
 
         col.addEventListener("click", () => {
-          const wasActive = col.classList.contains("active");
-          insightsBarChart.querySelectorAll(".chart-col").forEach((c) => c.classList.remove("active"));
-          if (!wasActive) col.classList.add("active");
+          if (selectedInsightsDateKey === day.dateKey) {
+            selectedInsightsDateKey = null;
+          } else {
+            selectedInsightsDateKey = day.dateKey;
+          }
+          renderMode4Insights();
         });
 
         insightsBarChart.appendChild(col);
@@ -1476,7 +1585,9 @@ function renderMode4Insights() {
         const dayShortName = t("dayNames")[day.dayOfWeek] || "";
         const formattedTime = formatHoursMinutes(day.seconds);
         const tooltipText = `${dayFullName}: ${formattedTime}`;
+        const isSelected = selectedInsightsDateKey === day.dateKey;
 
+        col.classList.toggle("selected", isSelected);
         col.setAttribute("aria-label", tooltipText);
 
         const tooltip = col.querySelector(".chart-tooltip");
@@ -1491,11 +1602,13 @@ function renderMode4Insights() {
     }
   }
 
-  // 3. Top Monitored Sites Breakdown
-  if (insightsSitesList && insightsEmptyMsg && insightsSitesCount) {
-    insightsSitesCount.textContent = topSites.length;
+  // 3. Top Monitored Sites Breakdown (Filtered by selected day or full week)
+  const activeSitesList = isDayFiltered ? selectedDay.topSites : topSites;
 
-    if (topSites.length === 0) {
+  if (insightsSitesList && insightsEmptyMsg && insightsSitesCount) {
+    insightsSitesCount.textContent = activeSitesList.length;
+
+    if (activeSitesList.length === 0) {
       insightsSitesList.innerHTML = "";
       insightsEmptyMsg.classList.remove("hidden");
     } else {
@@ -1503,13 +1616,13 @@ function renderMode4Insights() {
 
       const existingItems = insightsSitesList.querySelectorAll(".top-site-item");
       const currentKeys = Array.from(existingItems).map((el) => el.getAttribute("data-domain"));
-      const newKeys = topSites.map((s) => s.domain);
+      const newKeys = activeSitesList.map((s) => s.domain);
       const isStructureSame = currentKeys.length === newKeys.length &&
         currentKeys.every((key, i) => key === newKeys[i]);
 
       if (!isStructureSame) {
         insightsSitesList.innerHTML = "";
-        topSites.forEach((site) => {
+        activeSitesList.forEach((site) => {
           const li = document.createElement("li");
           li.className = "top-site-item";
           li.setAttribute("data-domain", site.domain);
@@ -1534,7 +1647,7 @@ function renderMode4Insights() {
         });
       } else {
         existingItems.forEach((li, idx) => {
-          const site = topSites[idx];
+          const site = activeSitesList[idx];
           if (!site) return;
 
           const timeEl = li.querySelector(".top-site-time");

@@ -300,16 +300,16 @@
         <!-- 4A: Weekly Summary Cards (Total Screen Time & Daily Avg) -->
         <div class="metrics-grid">
           <div class="metric-card full-width">
-            <span class="metric-label" data-i18n="totalThisWeek">Total Minggu Ini</span>
+            <span class="metric-label" id="insightsTotalLabel" data-i18n="totalThisWeek">Total Minggu Ini</span>
             <div class="metric-val" id="insightsTotalWeek">0m</div>
             <span class="metric-sub" id="insightsSubtext" data-i18n="monitoredUsageOnly">Dari website yang dibatasi</span>
           </div>
           <div class="metric-card">
-            <span class="metric-label" data-i18n="dailyAverage">Rata-rata / Hari</span>
+            <span class="metric-label" id="insightsMetric2Label" data-i18n="dailyAverage">Rata-rata / Hari</span>
             <div class="metric-val" id="insightsDailyAvg">0m</div>
           </div>
           <div class="metric-card">
-            <span class="metric-label" data-i18n="mostActiveDay">Hari Teraktif</span>
+            <span class="metric-label" id="insightsMetric3Label" data-i18n="mostActiveDay">Hari Teraktif</span>
             <div class="metric-val" id="insightsPeakDay">-</div>
           </div>
         </div>
@@ -317,8 +317,8 @@
         <!-- 4B: 7-Day Vertical Bar Chart (Pure CSS/SVG) -->
         <div class="chart-card">
           <div class="chart-header">
-            <span class="chart-title" data-i18n="last7DaysChart">Aktivitas 7 Hari Terakhir</span>
-            <span class="chart-tag" id="insightsChartBadge" data-i18n="past7DaysBadge">7 Hari</span>
+            <span class="chart-title" id="insightsChartTitle" data-i18n="last7DaysChart">Aktivitas 7 Hari Terakhir</span>
+            <button type="button" class="chart-tag" id="insightsChartBadge" data-i18n="past7DaysBadge" aria-label="Filter ringkasan">7 Hari</button>
           </div>
           <div class="chart-bars-wrap" id="insightsBarChart">
             <!-- 7 bars will be generated dynamically by renderMode4Insights() -->
@@ -328,15 +328,15 @@
         <!-- 4C: Top Monitored Websites Breakdown -->
         <section class="sub-section">
           <div class="sub-header">
-            <span data-i18n="topSitesTitle">Situs Teratas Minggu Ini</span>
+            <span id="insightsSitesTitle" data-i18n="topSitesTitle">Situs Teratas Minggu Ini</span>
             <span id="insightsSitesCount" class="sub-count">0</span>
           </div>
 
           <ul id="insightsSitesList" class="top-sites-list"></ul>
 
           <div id="insightsEmptyMsg" class="empty-box hidden">
-            <p class="empty-main" data-i18n="noDataThisWeekTitle">Belum ada aktivitas minggu ini.</p>
-            <p class="empty-sub" data-i18n="noDataThisWeekSub">Waktu dari situs yang kamu batasi akan tercatat otomatis di sini.</p>
+            <p class="empty-main" id="insightsEmptyMain" data-i18n="noDataThisWeekTitle">Belum ada aktivitas minggu ini.</p>
+            <p class="empty-sub" id="insightsEmptySub" data-i18n="noDataThisWeekSub">Waktu dari situs yang kamu batasi akan tercatat otomatis di sini.</p>
           </div>
         </section>
       </div>
