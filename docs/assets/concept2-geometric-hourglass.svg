@@ -1,0 +1,30 @@
+<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#18181B"/>
+      <stop offset="100%" stop-color="#09090B"/>
+    </linearGradient>
+    <linearGradient id="glass" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#71717A"/>
+    </linearGradient>
+    <radialGradient id="center" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#0A84FF" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#0A84FF" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Cupertino Squircle -->
+  <rect width="512" height="512" rx="116" fill="url(#bg)"/>
+  <rect width="512" height="512" rx="116" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+  <circle cx="256" cy="256" r="100" fill="url(#center)"/>
+
+  <!-- Geometric Modern Hourglass -->
+  <line x1="166" y1="140" x2="346" y2="140" stroke="#FFFFFF" stroke-width="22" stroke-linecap="round"/>
+  <path d="M 186 140 C 186 210, 230 240, 256 256 C 282 272, 326 302, 326 372" fill="none" stroke="url(#glass)" stroke-width="22" stroke-linecap="round"/>
+  <path d="M 326 140 C 326 210, 282 240, 256 256 C 230 272, 186 302, 186 372" fill="none" stroke="url(#glass)" stroke-width="22" stroke-linecap="round"/>
+  <line x1="166" y1="372" x2="346" y2="372" stroke="#FFFFFF" stroke-width="22" stroke-linecap="round"/>
+  
+  <circle cx="256" cy="256" r="12" fill="#0A84FF"/>
+  <circle cx="256" cy="320" r="8" fill="rgba(255,255,255,0.7)"/>
+</svg>

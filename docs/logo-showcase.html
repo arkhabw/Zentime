@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zentime — Logo Concept Exploration</title>
+  <style>
+    :root {
+      --bg: #09090b;
+      --surface: #141417;
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #f5f5f7;
+      --text-muted: #86868b;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      padding: 40px 20px 80px;
+      line-height: 1.5;
+    }
+    .header {
+      max-width: 900px;
+      margin: 0 auto 40px;
+      text-align: center;
+    }
+    .header h1 {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
+    }
+    .header p {
+      color: var(--text-muted);
+      font-size: 16px;
+    }
+    .grid {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    .concept-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+    .concept-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+    .concept-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-top: 20px;
+      margin-bottom: 6px;
+      text-align: center;
+    }
+    .concept-tagline {
+      font-size: 13px;
+      color: var(--text-muted);
+      text-align: center;
+      margin-bottom: 24px;
+      height: 40px;
+    }
+    .logo-hero-preview {
+      width: 180px;
+      height: 180px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+    .logo-hero-preview svg {
+      width: 100%;
+      height: 100%;
+      filter: drop-shadow(0 12px 30px rgba(0, 0, 0, 0.45));
+    }
+    .size-test-row {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      margin-top: auto;
+    }
+    .size-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+    .size-label {
+      font-size: 10px;
+      color: var(--text-muted);
+      font-family: monospace;
+    }
+    @media (max-width: 860px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>Zentime — Logo Exploration</h1>
+    <p>Clean, modern, and purposeful visual identities merging <strong>Mindful Zen</strong> with <strong>Focus Time</strong>.</p>
+  </div>
+
+  <div class="grid">
+
+    <!-- CONCEPT 1 -->
+    <div class="concept-card">
+      <div class="logo-hero-preview">
+        <!-- SVG Concept 1: The Zen Chrono Ring (Enso Arc + Central Focus Ray) -->
+        <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="c1_bg" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#1A1A1F"/>
+              <stop offset="100%" stop-color="#0B0B0D"/>
+            </linearGradient>
+            <linearGradient id="c1_ring" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#FFFFFF"/>
+              <stop offset="70%" stop-color="#E5E5EA"/>
+              <stop offset="100%" stop-color="#A1A1A6"/>
+            </linearGradient>
+            <radialGradient id="c1_glow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#30D158" stop-opacity="0.25"/>
+              <stop offset="100%" stop-color="#30D158" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <!-- Squircle Base -->
+          <rect width="512" height="512" rx="116" fill="url(#c1_bg)"/>
+          <rect width="512" height="512" rx="116" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+          <circle cx="256" cy="256" r="140" fill="url(#c1_glow)"/>
+
+          <!-- 3/4 Focus Ring (The Zen Arc) -->
+          <circle cx="256" cy="256" r="140" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="24"/>
+          <!-- Active 270deg Arc -->
+          <path d="M 256 116 A 140 140 0 1 1 116 256" fill="none" stroke="url(#c1_ring)" stroke-width="26" stroke-linecap="round"/>
+          
+          <!-- Modern Minimal Clock Hands -->
+          <line x1="256" y1="256" x2="256" y2="160" stroke="#FFFFFF" stroke-width="16" stroke-linecap="round"/>
+          <line x1="256" y1="256" x2="328" y2="256" stroke="#FFFFFF" stroke-width="16" stroke-linecap="round"/>
+          <circle cx="256" cy="256" r="14" fill="#30D158"/>
+        </svg>
+      </div>
+      <h3 class="concept-title">Concept 1: Zen Chrono Ring</h3>
+      <p class="concept-tagline">Lingkaran Enso mindful yang terbuka sebagai penanda alokasi waktu fokus, dengan jarum jam minimalis.</p>
+
+      <div class="size-test-row">
+        <div class="size-col">
+          <svg width="48" height="48" viewBox="0 0 512 512">
+            <rect width="512" height="512" rx="116" fill="#141417"/>
+            <circle cx="256" cy="256" r="140" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="24"/>
+            <path d="M 256 116 A 140 140 0 1 1 116 256" fill="none" stroke="#FFFFFF" stroke-width="28" stroke-linecap="round"/>
+            <line x1="256" y1="256" x2="256" y2="160" stroke="#FFFFFF" stroke-width="18" stroke-linecap="round"/>
+            <line x1="256" y1="256" x2="328" y2="256" stroke="#FFFFFF" stroke-width="18" stroke-linecap="round"/>
+            <circle cx="256" cy="256" r="16" fill="#30D158"/>
+          </svg>
+          <span class="size-label">48px</span>
+        </div>
+        <div class="size-col">
+          <svg width="32" height="32" viewBox="0 0 512 512">
+            <rect width="512" height="512" rx="116" fill="#141417"/>
+            <path d="M 256 116 A 140 140 0 1 1 116 256" fill="none" stroke="#FFFFFF" stroke-width="32" stroke-linecap="round"/>
+            <line x1="256" y1="256" x2="256" y2="160" stroke="#FFFFFF" stroke-width="22" stroke-linecap="round"/>
+            <line x1="256" y1="256" x2="328" y2="256" stroke="#FFFFFF" stroke-width="22" stroke-linecap="round"/>
+            <circle cx="256" cy="256" r="20" fill="#30D158"/>
+          </svg>
+          <span class="size-label">32px</span>
+        </div>
+        <div class="size-col">
+          <svg width="16" height="16" viewBox="0 0 512 512">
+            <rect width="512" height="512" rx="116" fill="#141417"/>
+            <path d="M 256 116 A 140 140 0 1 1 116 256" fill="none" stroke="#FFFFFF" stroke-width="44" stroke-linecap="round"/>
+            <line x1="256" y1="256" x2="256" y2="150" stroke="#FFFFFF" stroke-width="30" stroke-linecap="round"/>
+            <line x1="256" y1="256" x2="338" y2="256" stroke="#FFFFFF" stroke-width="30" stroke-linecap="round"/>
+          </svg>
+          <span class="size-label">16px</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONCEPT 2 -->
+    <div class="concept-card">
+      <div class="logo-hero-preview">
+        <!-- SVG Concept 2: The Geometric Hourglass Continuum (Modern Hourglass + "Z" Flow) -->
+        <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="c2_bg" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#1A1A1F"/>
+              <stop offset="100%" stop-color="#0B0B0D"/>
+            </linearGradient>
+            <linearGradient id="c2_glass" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#FFFFFF"/>
+              <stop offset="100%" stop-color="#8E8E93"/>
+            </linearGradient>
+            <radialGradient id="c2_center" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#0A84FF" stop-opacity="0.3"/>
+              <stop offset="100%" stop-color="#0A84FF" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <rect width="512" height="512" rx="116" fill="url(#c2_bg)"/>
+          <rect width="512" height="512" rx="116" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+          <circle cx="256" cy="256" r="100" fill="url(#c2_center)"/>
+
+          <!-- Unbroken Geometric Hourglass (forming subtle Z diagonal) -->
+          <!-- Top Base -->
+          <line x1="166" y1="140" x2="346" y2="140" stroke="#FFFFFF" stroke-width="22" stroke-linecap="round"/>
+          <!-- Curved Funnel Body -->
+          <path d="M 186 140 C 186 210, 230 240, 256 256 C 282 272, 326 302, 326 372" fill="none" stroke="url(#c2_glass)" stroke-width="22" stroke-linecap="round"/>
+          <path d="M 326 140 C 326 210, 282 240, 256 256 C 230 272, 186 302, 186 372" fill="none" stroke="url(#c2_glass)" stroke-width="22" stroke-linecap="round"/>
+          <!-- Bottom Base -->
+          <line x1="166" y1="372" x2="346" y2="372" stroke="#FFFFFF" stroke-width="22" stroke-linecap="round"/>
+          <!-- Falling Zen Sand Particle -->
+          <circle cx="256" cy="256" r="12" fill="#0A84FF"/>
+          <circle cx="256" cy="320" r="8" fill="rgba(255,255,255,0.7)"/>
+        </svg>
+      </div>
+      <h3 class="concept-title">Concept 2: Geometric Continuum</h3>
+      <p class="concept-tagline">Jam pasir modern dengan lengkungan presisi simetris yang membentuk huruf 'Z' dan aliran waktu berkesinambungan.</p>
+
+      <div class="size-test-row">
+        <div class="size-col">
+          <svg width="48" height="48" viewBox="0 0 512 512">
+            <rect width="512" height="512" rx="116" fill="#141417"/>
+            <line x1="166" y1="140" x2="346" y2="140" stroke="#FFFFFF" stroke-width="24" stroke-linecap="round"/>
+            <path d="M 186 140 C 186 210, 230 240, 256 256 C 282 272, 326 302, 326 372" fill="none" stroke="#FFFFFF" stroke-width="24" stroke-linecap="round"/>
+            <path d="M 326 140 C 326 210, 282 240, 256 256 C 230 272, 186 302, 186 372" fill="none" stroke="#FFFFFF" stroke-width="24" stroke-linecap="round"/>
+            <line x1="166" y1="372" x2="346" y2="372" stroke="#FFFFFF" stroke-width="24" stroke-linecap="round"/>
+            <circle cx="256" cy="256" r="14" fill="#0A84FF"/>
+          </svg>
+          <span class="size-label">48px</span>
+        </div>
+        <div class="size-col">
+          <svg width="32" height="32" viewBox="0 0 512 512">
+            <rect width="512" height="512" rx="116" fill="#141417"/>
+            <line x1="166" y1="140" x2="346" y2="140" stroke="#FFFFFF" stroke-width="28" stroke-linecap="round"/>
+            <path d="M 186 140 C 186 210, 230 240, 256 256 C 282 272, 326 302, 326 372" fill="none" stroke="#FFFFFF" stroke-width="28" stroke-linecap="round"/>
+            <path d="M 326 140 C 326 210, 282 240, 256 256 C 230 272, 186 302, 186 372" fill="none" stroke="#FFFFFF" stroke-width="28" stroke-linecap="round"/>
+            <line x1="166" y1="372" x2="346" y2="372" stroke="#FFFFFF" stroke-width="28" stroke-linecap="round"/>
+            <circle cx="256" cy="256" r="18" fill="#0A84FF"/>
+          </svg>
+          <span class="size-label">32px</span>
+        </div>
+        <div class="size-col">
+          <svg width="16" height="16" viewBox="0 0 512 512">
+            <rect width="512" height="512" rx="116" fill="#141417"/>
+            <line x1="166" y1="130" x2="346" y2="130" stroke="#FFFFFF" stroke-width="40" stroke-linecap="round"/>
+            <path d="M 186 130 C 186 210, 230 240, 256 256 C 282 272, 326 302, 326 382" fill="none" stroke="#FFFFFF" stroke-width="40" stroke-linecap="round"/>
+            <path d="M 326 130 C 326 210, 282 240, 256 256 C 230 272, 186 302, 186 382" fill="none" stroke="#FFFFFF" stroke-width="40" stroke-linecap="round"/>
+            <line x1="166" y1="382" x2="346" y2="382" stroke="#FFFFFF" stroke-width="40" stroke-linecap="round"/>
+          </svg>
+          <span class="size-label">16px</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONCEPT 3 -->
+    <div class="concept-card">
+      <div class="logo-hero-preview">
+        <!-- SVG Concept 3: The Equilibrium Dial (Dual Mindful Arcs / Zen Yin-Yang of Time) -->
+        <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="c3_bg" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#1A1A1F"/>
+              <stop offset="100%" stop-color="#0B0B0D"/>
+            </linearGradient>
+            <linearGradient id="c3_arcA" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#FFFFFF"/>
+              <stop offset="100%" stop-color="#D1D1D6"/>
+            </linearGradient>
+            <linearGradient id="c3_arcB" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#FF9F0A"/>
+              <stop offset="100%" stop-color="#FF375F"/>
+            </linearGradient>
+          </defs>
+          <rect width="512" height="512" rx="116" fill="url(#c3_bg)"/>
+          <rect width="512" height="512" rx="116" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+
+          <!-- Outer Subtle Track -->
+          <circle cx="256" cy="256" r="144" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="12"/>
+
+          <!-- Upper Focus Arc (Work) -->
+          <path d="M 154 154 A 144 144 0 0 1 358 154" fill="none" stroke="url(#c3_arcA)" stroke-width="26" stroke-linecap="round"/>
+          
+          <!-- Lower Rest Arc (Break) -->
+          <path d="M 358 358 A 144 144 0 0 1 154 358" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="20" stroke-linecap="round"/>
+
+          <!-- Central Zen Dial Hand -->
+          <circle cx="256" cy="256" r="32" fill="rgba(255,255,255,0.06)"/>
+          <circle cx="256" cy="256" r="12" fill="#FFFFFF"/>
+          <line x1="256" y1="256" x2="256" y2="140" stroke="#FFFFFF" stroke-width="14" stroke-linecap="round"/>
+          <circle cx="256" cy="140" r="8" fill="#30D158"/>
+        </svg>
+      </div>
+      <h3 class="concept-title">Concept 3: The Equilibrium Dial</h3>
+      <p class="concept-tagline">Keseimbangan dua busur waktu (Focus & Break) yang menyatu dalam dial sentral penanda ketenangan pikiran.</p>
+
+      <div class="size-test-row">
+        <div class="size-col">
+          <svg width="48" height="48" viewBox="0 0 512 512">
+            <rect width="512" height="512" rx="116" fill="#141417"/>
+            <path d="M 154 154 A 144 144 0 0 1 358 154" fill="none" stroke="#FFFFFF" stroke-width="28" stroke-linecap="round"/>
+            <path d="M 358 358 A 144 144 0 0 1 154 358" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="22" stroke-linecap="round"/>
+            <circle cx="256" cy="256" r="16" fill="#FFFFFF"/>
+            <line x1="256" y1="256" x2="256" y2="140" stroke="#FFFFFF" stroke-width="16" stroke-linecap="round"/>
+            <circle cx="256" cy="140" r="10" fill="#30D158"/>
+          </svg>
+          <span class="size-label">48px</span>
+        </div>
+        <div class="size-col">
+          <svg width="32" height="32" viewBox="0 0 512 512">
+            <rect width="512" height="512" rx="116" fill="#141417"/>
+            <path d="M 154 154 A 144 144 0 0 1 358 154" fill="none" stroke="#FFFFFF" stroke-width="32" stroke-linecap="round"/>
+            <path d="M 358 358 A 144 144 0 0 1 154 358" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="24" stroke-linecap="round"/>
+            <circle cx="256" cy="256" r="20" fill="#FFFFFF"/>
+            <line x1="256" y1="256" x2="256" y2="140" stroke="#FFFFFF" stroke-width="20" stroke-linecap="round"/>
+          </svg>
+          <span class="size-label">32px</span>
+        </div>
+        <div class="size-col">
+          <svg width="16" height="16" viewBox="0 0 512 512">
+            <rect width="512" height="512" rx="116" fill="#141417"/>
+            <path d="M 154 154 A 144 144 0 0 1 358 154" fill="none" stroke="#FFFFFF" stroke-width="44" stroke-linecap="round"/>
+            <path d="M 358 358 A 144 144 0 0 1 154 358" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="34" stroke-linecap="round"/>
+            <circle cx="256" cy="256" r="30" fill="#FFFFFF"/>
+          </svg>
+          <span class="size-label">16px</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>

@@ -1,6 +1,10 @@
-# Zentime ⏳
+<div align="center">
 
-> A clean, distraction-free Chrome extension for site-specific focus timers and daily screen time limits.
+<img src="icons/icon.svg" width="84" height="84" alt="Zentime Logo">
+
+# Zentime
+
+> A clean, distraction-free Chrome extension for site-specific focus countdowns and daily screen time limits.
 
 [![Manifest V3](https://img.shields.io/badge/Manifest-V3-blue.svg)](https://developer.chrome.com/docs/extensions/mv3/intro/)
 [![Website: Live](https://img.shields.io/badge/Website-Live%20Showcase-emerald.svg)](https://arkhabw.github.io/Zentime/)
@@ -8,6 +12,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-black.svg)](LICENSE)
 [![Vanilla JS](https://img.shields.io/badge/Vanilla-JS-yellow.svg)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
 [![Anti--Slop UI](https://img.shields.io/badge/Design-Anti--Slop%20Crafted-emerald.svg)](#design-philosophy)
+
+</div>
 
 ---
 

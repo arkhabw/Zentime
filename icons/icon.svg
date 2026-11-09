@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="tileBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#18181C"/>
+      <stop offset="100%" stop-color="#09090B"/>
+    </linearGradient>
+    <linearGradient id="arcGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="70%" stop-color="#F4F4F5"/>
+      <stop offset="100%" stop-color="#A1A1AA"/>
+    </linearGradient>
+    <radialGradient id="zenGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#30D158" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#30D158" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="16" flood-color="#000000" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+
+  <!-- Cupertino Continuous Squircle Tile -->
+  <rect width="512" height="512" rx="116" fill="url(#tileBg)"/>
+  <rect width="512" height="512" rx="116" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+
+  <!-- Subtle Zen Ambient Core -->
+  <circle cx="256" cy="256" r="140" fill="url(#zenGlow)"/>
+
+  <!-- Inactive Orbit Track -->
+  <circle cx="256" cy="256" r="140" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="22"/>
+
+  <!-- Active 270° Focus Arc (Mindful Enso Flow) -->
+  <path d="M 256 116 A 140 140 0 1 1 116 256" 
+        fill="none" 
+        stroke="url(#arcGrad)" 
+        stroke-width="26" 
+        stroke-linecap="round"
+        filter="url(#softShadow)"/>
+
+  <!-- Precision Baton Clock Hands (10:10 / 12:15 Balance) -->
+  <line x1="256" y1="256" x2="256" y2="152" stroke="#FFFFFF" stroke-width="16" stroke-linecap="round"/>
+  <line x1="256" y1="256" x2="334" y2="256" stroke="#FFFFFF" stroke-width="16" stroke-linecap="round"/>
+
+  <!-- Central Emerald Zen Focus Pivot -->
+  <circle cx="256" cy="256" r="14" fill="#30D158"/>
+  <circle cx="256" cy="256" r="5" fill="#FFFFFF"/>
+</svg>

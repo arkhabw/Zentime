@@ -9,19 +9,28 @@
   // -------------------------------------------------------------
   const welcomeOverlay = document.getElementById("welcomeOverlay");
   if (welcomeOverlay) {
+    let dismissed = false;
     const dismissWelcome = () => {
+      if (dismissed) return;
+      dismissed = true;
       welcomeOverlay.classList.add("is-hidden");
       setTimeout(() => {
         welcomeOverlay.remove();
-      }, 800);
+      }, 750);
     };
 
-    // Auto-dismiss after gentle breathing animation
-    setTimeout(dismissWelcome, 1300);
+    // Auto-dismiss after mindful reveal choreography (2.2s)
+    const welcomeTimer = setTimeout(dismissWelcome, 2200);
 
     // Allow instant dismiss on click or key press
-    welcomeOverlay.addEventListener("click", dismissWelcome);
-    window.addEventListener("keydown", dismissWelcome, { once: true });
+    welcomeOverlay.addEventListener("click", () => {
+      clearTimeout(welcomeTimer);
+      dismissWelcome();
+    });
+    window.addEventListener("keydown", () => {
+      clearTimeout(welcomeTimer);
+      dismissWelcome();
+    }, { once: true });
   }
 
   // -------------------------------------------------------------
@@ -36,7 +45,17 @@
     document.documentElement.setAttribute("data-theme", theme);
     localStorage.setItem("zentime_theme", theme);
     if (themeToggleBtn) {
-      themeToggleBtn.innerHTML = theme === "dark" ? "☀️" : "🌙";
+      const sunIcon = themeToggleBtn.querySelector(".theme-icon-sun");
+      const moonIcon = themeToggleBtn.querySelector(".theme-icon-moon");
+      if (sunIcon && moonIcon) {
+        if (theme === "dark") {
+          sunIcon.style.display = "block";
+          moonIcon.style.display = "none";
+        } else {
+          sunIcon.style.display = "none";
+          moonIcon.style.display = "block";
+        }
+      }
       themeToggleBtn.setAttribute("aria-label", theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode");
     }
   }

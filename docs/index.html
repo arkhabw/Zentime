@@ -28,18 +28,45 @@
   <!-- Ambient Glow Background -->
   <div class="ambient-glow"></div>
 
-  <!-- Welcome Entrance Curtain -->
-  <div class="welcome-overlay" id="welcomeOverlay">
-    <img src="icons/icon128.png" alt="Zentime Logo" class="welcome-logo">
+  <!-- Welcome Entrance Curtain (Mindful Zen Reveal) -->
+  <div class="welcome-overlay" id="welcomeOverlay" role="dialog" aria-modal="true" aria-label="Welcome to Zentime">
+    <div class="welcome-emblem-wrap">
+      <div class="welcome-emblem-glow"></div>
+      <svg class="welcome-enso-svg" viewBox="0 0 120 120" width="88" height="88">
+        <defs>
+          <linearGradient id="welcomeArcGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#FFFFFF"/>
+            <stop offset="100%" stop-color="#A1A1AA"/>
+          </linearGradient>
+          <radialGradient id="welcomeAura" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#30D158" stop-opacity="0.32"/>
+            <stop offset="100%" stop-color="#30D158" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+        <!-- Orbit track -->
+        <circle class="welcome-orbit" cx="60" cy="60" r="44"/>
+        <!-- Soft focus aura -->
+        <circle cx="60" cy="60" r="44" fill="url(#welcomeAura)"/>
+        <!-- Active 270° Enso Ring (animated draw) -->
+        <path class="welcome-arc" d="M 60 16 A 44 44 0 1 1 16 60"/>
+        <!-- Baton Hands (spring entrance) -->
+        <line class="welcome-hand hand-hour" x1="60" y1="60" x2="60" y2="30"/>
+        <line class="welcome-hand hand-minute" x1="60" y1="60" x2="84" y2="60"/>
+        <!-- Emerald Zen Center -->
+        <circle class="welcome-pivot" cx="60" cy="60" r="5"/>
+        <circle cx="60" cy="60" r="2" fill="#FFFFFF"/>
+      </svg>
+    </div>
     <h1 class="welcome-title">Zentime</h1>
-    <p class="welcome-sub">Inhale focus • Exhale distraction</p>
+    <p class="welcome-sub">Inhale focus &bull; Exhale distraction</p>
+    <div class="welcome-hint">Click anywhere to enter</div>
   </div>
 
   <!-- Floating Navigation Bar -->
   <header class="navbar-wrapper">
     <nav class="navbar">
       <a href="#" class="nav-brand">
-        <img src="icons/icon48.png" alt="" class="nav-logo" width="26" height="26">
+        <img src="icons/icon.svg" alt="Zentime" class="nav-logo" width="26" height="26">
         <span>Zentime</span>
       </a>
 
@@ -52,10 +79,26 @@
 
       <div class="nav-actions">
         <button id="themeToggleBtn" class="theme-toggle-btn" type="button" aria-label="Toggle Theme">
-          ☀️
+          <svg class="theme-icon-sun" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <svg class="theme-icon-moon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
         </button>
-        <a href="https://github.com/arkhabw/Zentime" target="_blank" rel="noopener noreferrer" class="btn-secondary" style="padding: 8px 14px; font-size: 13px;">
-          ⭐ Star
+        <a href="https://github.com/arkhabw/Zentime" target="_blank" rel="noopener noreferrer" class="btn-secondary" style="padding: 8px 14px; font-size: 13px; display: inline-flex; align-items: center; gap: 6px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+          </svg>
+          <span>Star</span>
         </a>
         <a href="https://github.com/arkhabw/Zentime/releases/download/v1.0.0/zentime-v1.0.0.zip" class="btn-nav-download">
           Download ZIP
@@ -102,13 +145,25 @@
         </div>
 
         <div class="hero-badges">
-          <span class="badge-item">🛡️ Manifest V3</span>
+          <span class="badge-item">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span>Manifest V3</span>
+          </span>
           <span class="badge-dot">•</span>
-          <span class="badge-item">🔒 100% Offline</span>
+          <span class="badge-item">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            <span>100% Offline</span>
+          </span>
           <span class="badge-dot">•</span>
-          <span class="badge-item">⚡ Zero Trackers</span>
+          <span class="badge-item">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+            <span>Zero Trackers</span>
+          </span>
           <span class="badge-dot">•</span>
-          <span class="badge-item">🎨 Apple HIG</span>
+          <span class="badge-item">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a14.5 14.5 0 0 0 0 20 10 10 0 0 0 0-20"></path></svg>
+            <span>Apple HIG</span>
+          </span>
         </div>
       </div>
 
@@ -120,7 +175,12 @@
             <div class="widget-brand">Zentime <span>/ Focus</span></div>
             <div class="widget-header-controls">
               <span class="lang-pill">EN</span>
-              <span class="lang-pill">⚙️</span>
+              <span class="lang-pill" aria-label="Settings" style="display: inline-flex; align-items: center; justify-content: center;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="3"></circle>
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                </svg>
+              </span>
             </div>
           </div>
 
@@ -244,7 +304,11 @@
 
         <!-- Trigger Break Screen Simulator -->
         <button id="triggerBreakSimBtn" class="btn-trigger-simulator" type="button">
-          <span>🧘</span>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="10" y1="15" x2="10" y2="9"></line>
+            <line x1="14" y1="15" x2="14" y2="9"></line>
+          </svg>
           <span>Simulate Mindful Break Screen</span>
           <span style="opacity: 0.5;">→</span>
         </button>
@@ -254,7 +318,7 @@
     <!-- Bento Grid Showcase Section -->
     <section class="section-wrapper" id="features">
       <div class="section-header scroll-reveal">
-        <span class="section-tag">Anti-Slop Craftsmanship</span>
+        <span class="section-tag">Pure Focus Architecture</span>
         <h2 class="section-title">Everything you need. Nothing you don't.</h2>
         <p class="section-desc">
           Zentime replaces noisy, subscription-gated blocker extensions with a clean, local-first utility designed around the human attention span.
@@ -265,7 +329,10 @@
         <!-- Card 1: Precision Focus Countdown -->
         <div class="bento-card bento-col-8 scroll-reveal">
           <div class="bento-card-top">
-            <span class="bento-badge">⏱️ Mode 1 • Manual Timers</span>
+            <span class="bento-badge">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              <span>Mode 1 • Focus Timers</span>
+            </span>
             <h3 class="bento-title">Targeted Focus Timers with 3 Visual Styles</h3>
             <p class="bento-desc">
               Choose between an SVG Ring, a Linear Bar, or pure Minimal digits. Set quick presets for 15, 25, 45, or 60 minutes with per-second local accuracy.
@@ -279,7 +346,10 @@
         <!-- Card 2: Pomodoro Cycles -->
         <div class="bento-card bento-col-4 scroll-reveal">
           <div class="bento-card-top">
-            <span class="bento-badge">🍅 Mode 2 • Pomodoro</span>
+            <span class="bento-badge">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+              <span>Mode 2 • Pomodoro Cycles</span>
+            </span>
             <h3 class="bento-title">4-Cycle Structured Workflow</h3>
             <p class="bento-desc">
               Classic 25/5m, Deep Work 50/10m, or Sprint 15/3m sessions with automatic 15-minute long breaks after 4 completed cycles.
@@ -293,7 +363,10 @@
         <!-- Card 3: Daily Quotas & Light Theme -->
         <div class="bento-card bento-col-4 scroll-reveal">
           <div class="bento-card-top">
-            <span class="bento-badge">🛑 Mode 3 • Screen Time Limits</span>
+            <span class="bento-badge">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
+              <span>Mode 3 • Screen Time Limits</span>
+            </span>
             <h3 class="bento-title">Active-Tab Quotas & Dual Theme</h3>
             <p class="bento-desc">
               Only counts active browsing time and pauses immediately when you switch tabs. Seamlessly renders in crisp Matte Light Mode.
@@ -307,7 +380,10 @@
         <!-- Card 4: Screen Time Analytics -->
         <div class="bento-card bento-col-8 scroll-reveal">
           <div class="bento-card-top">
-            <span class="bento-badge">📊 Mode 4 • Local Analytics</span>
+            <span class="bento-badge">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+              <span>Mode 4 • Activity Insights</span>
+            </span>
             <h3 class="bento-title">7-Day Activity & Interactive Day Drilldown</h3>
             <p class="bento-desc">
               High-contrast CSS/SVG bar chart showing your 7-day usage. Click on any individual day to filter top visited websites for that date. All stored locally on your machine.
@@ -321,7 +397,10 @@
         <!-- Card 5: Audio Chime -->
         <div class="bento-card bento-col-6 scroll-reveal">
           <div class="bento-card-top">
-            <span class="bento-badge">🔔 Web Audio API</span>
+            <span class="bento-badge">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+              <span>Web Audio API</span>
+            </span>
             <h3 class="bento-title">10-Second Harmonic Singing Bowl Chime</h3>
             <p class="bento-desc">
               Synthesized pure C-Major pentatonic chords via Web Audio API. Zero external audio MP3 files, soft exponential attack, and soothing tranquil release.
@@ -336,7 +415,8 @@
               <span class="wave-bar"></span>
             </div>
             <button id="playChimeBtn" class="chime-btn" type="button">
-              🔔 Play 10s Harmonic Bell
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+              <span>Play 10s Harmonic Bell</span>
             </button>
           </div>
         </div>
@@ -344,7 +424,10 @@
         <!-- Card 6: Zero Telemetry Guarantee -->
         <div class="bento-card bento-col-6 scroll-reveal">
           <div class="bento-card-top">
-            <span class="bento-badge">🔒 Privacy Guarantee</span>
+            <span class="bento-badge">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+              <span>Privacy Architecture</span>
+            </span>
             <h3 class="bento-title">100% Offline by Design</h3>
             <p class="bento-desc">
               Zentime makes zero network requests. No user accounts, no cloud database, no tracking pixels, and no data sales. Everything lives inside your browser's private local storage.
@@ -386,7 +469,12 @@
             <tr>
               <th>Feature</th>
               <th>Typical Productivity Extensions</th>
-              <th>Zentime ⏳</th>
+              <th>
+                <span style="display: inline-flex; align-items: center; gap: 6px; color: var(--text-main);">
+                  <img src="icons/icon.svg" alt="" width="16" height="16">
+                  <span>Zentime</span>
+                </span>
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -477,7 +565,7 @@
       <div class="breathe-wrapper">
         <div class="breathe-pulse"></div>
         <div class="breathe-core">
-          <img src="icons/icon48.png" alt="" width="26" height="26">
+          <img src="icons/icon.svg" alt="Zentime" width="28" height="28">
         </div>
       </div>
 
@@ -520,7 +608,7 @@
   <!-- Footer -->
   <footer class="footer">
     <div class="footer-left">
-      <img src="icons/icon16.png" alt="" width="16" height="16">
+      <img src="icons/icon.svg" alt="" width="16" height="16">
       <span class="footer-text">
         Crafted with care by <a href="https://github.com/arkhabw" target="_blank" rel="noopener">@arkhabw</a>. Released under the <a href="https://github.com/arkhabw/Zentime/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a>.
       </span>

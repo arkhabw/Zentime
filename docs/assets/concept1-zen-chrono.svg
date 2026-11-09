@@ -1,0 +1,33 @@
+<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#18181B"/>
+      <stop offset="100%" stop-color="#09090B"/>
+    </linearGradient>
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="70%" stop-color="#E4E4E7"/>
+      <stop offset="100%" stop-color="#71717A"/>
+    </linearGradient>
+    <radialGradient id="centerGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#30D158" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#30D158" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Cupertino Squircle -->
+  <rect width="512" height="512" rx="116" fill="url(#bg)"/>
+  <rect width="512" height="512" rx="116" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+  <circle cx="256" cy="256" r="140" fill="url(#centerGlow)"/>
+
+  <!-- Subtle Full Track -->
+  <circle cx="256" cy="256" r="140" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="24"/>
+
+  <!-- Active 270° Focus Arc (Mindful Enso Time) -->
+  <path d="M 256 116 A 140 140 0 1 1 116 256" fill="none" stroke="url(#ringGrad)" stroke-width="26" stroke-linecap="round"/>
+  
+  <!-- Minimalist Clock Hands -->
+  <line x1="256" y1="256" x2="256" y2="160" stroke="#FFFFFF" stroke-width="16" stroke-linecap="round"/>
+  <line x1="256" y1="256" x2="328" y2="256" stroke="#FFFFFF" stroke-width="16" stroke-linecap="round"/>
+  <circle cx="256" cy="256" r="14" fill="#30D158"/>
+</svg>
