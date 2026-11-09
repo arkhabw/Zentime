@@ -9,6 +9,17 @@
 
 ---
 
+<div align="center">
+
+| ⏱️ Active Focus Countdown (Ring Style) | 🧘 Mindful Interstitial Pause Screen |
+| :---: | :---: |
+| <img src="docs/assets/preview-timer.png" width="310" alt="Zentime Active Focus Timer"> | <img src="docs/assets/preview-blocker.png" width="380" alt="Zentime Mindful Break Screen"> |
+| <sub><i>Per-website countdown with multi-site tracking</i></sub> | <sub><i>Calming full-page pause when session finishes</i></sub> |
+
+</div>
+
+---
+
 ## Overview
 
 **Zentime** is a lightweight, privacy-focused Google Chrome extension designed to help you regain control over your digital habits. Whether you need a short Pomodoro session for writing or want to cap your daily YouTube or social media scrolling to 30 minutes, Zentime gives you the right tools without clutter.
@@ -18,6 +29,16 @@ Built strictly under **Manifest V3** with zero external dependencies, Zentime ru
 ---
 
 ## Key Features
+
+<div align="center">
+
+| 🍅 Pomodoro Cycles | 🛑 Daily Quotas (Light Theme) | 📊 Screen Time Analytics |
+| :---: | :---: | :---: |
+| <img src="docs/assets/preview-pomodoro.png" width="240" alt="Pomodoro Workflow"> | <img src="docs/assets/preview-limits-light.png" width="240" alt="Daily Screen Time Limits in Light Mode"> | <img src="docs/assets/preview-insights.png" width="240" alt="7-Day Screen Time Analytics"> |
+| <sub><i>4-cycle workflow & automatic long breaks</i></sub> | <sub><i>Active-tab tracking & dual-theme support</i></sub> | <sub><i>7-day activity bar chart & top sites</i></sub> |
+
+</div>
+<br>
 
 ### ⏱️ Mode 1: Manual Focus Timer
 - **Instant Website Countdown**: Target specific websites with a timer (e.g., 25 minutes on GitHub or Docs).
@@ -131,6 +152,12 @@ Since Zentime is an unpacked extension, you can install it in Google Chrome in l
 
 ```text
 web-timer-extension/
+├── docs/assets/          # README preview screenshots
+│   ├── preview-timer.png
+│   ├── preview-blocker.png
+│   ├── preview-pomodoro.png
+│   ├── preview-limits-light.png
+│   └── preview-insights.png
 ├── fonts/
 │   ├── JetBrainsMono-Variable.woff2 # Tabular numbers font
 │   └── PlusJakartaSans-Variable.woff2 # Clean interface font
