@@ -112,21 +112,99 @@ body {
   line-height: 1.6;
 }
 
-/* Background Atmosphere */
-.ambient-glow {
+/* -------------------------------------------------------------
+   Atmospheric Fluted Glass & Ambient Stage (Option B)
+   Reeded glass vertical refraction with centered vignette mask
+   ------------------------------------------------------------- */
+.fluted-stage {
   position: fixed;
-  top: -150px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 900px;
-  height: 500px;
-  background: radial-gradient(ellipse, rgba(255, 255, 255, 0.04) 0%, transparent 70%);
+  inset: 0;
   pointer-events: none;
   z-index: 0;
+  overflow: hidden;
 }
 
-[data-theme="light"] .ambient-glow {
-  background: radial-gradient(ellipse, rgba(0, 0, 0, 0.03) 0%, transparent 70%);
+.ambient-glow {
+  pointer-events: none;
+  position: absolute;
+}
+
+.ambient-glow-top {
+  top: -160px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1040px;
+  height: 580px;
+  background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.055) 0%, transparent 68%);
+}
+
+.ambient-glow-emerald {
+  top: 6%;
+  right: -80px;
+  width: 680px;
+  height: 680px;
+  background: radial-gradient(circle at center, rgba(48, 209, 88, 0.045) 0%, transparent 65%);
+  filter: blur(35px);
+}
+
+/* Fluted Glass Reeded Texture Layer
+   32px cylindrical flute repeats: specular highlight apex at 0px-1px,
+   smooth concave depth drop at 16px, masked with radial vignette */
+.fluted-glass-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.045) 0px,
+    rgba(255, 255, 255, 0.075) 1px,
+    rgba(255, 255, 255, 0.015) 4px,
+    rgba(0, 0, 0, 0.26) 16px,
+    rgba(255, 255, 255, 0.015) 28px,
+    rgba(255, 255, 255, 0.045) 32px
+  );
+  -webkit-mask-image: radial-gradient(ellipse 68% 58% at 50% 42%, transparent 28%, rgba(0, 0, 0, 0.38) 64%, black 100%);
+  mask-image: radial-gradient(ellipse 68% 58% at 50% 42%, transparent 28%, rgba(0, 0, 0, 0.38) 64%, black 100%);
+  opacity: 0.9;
+}
+
+/* Tactile Micro-Noise (feTurbulence film grain) */
+.fluted-noise-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.035'/%3E%3C/svg%3E");
+  opacity: 0.55;
+  mix-blend-mode: overlay;
+}
+
+/* Light Mode Overrides */
+[data-theme="light"] .ambient-glow-top {
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.032) 0%, transparent 68%);
+}
+
+[data-theme="light"] .ambient-glow-emerald {
+  background: radial-gradient(circle at center, rgba(48, 209, 88, 0.03) 0%, transparent 65%);
+}
+
+[data-theme="light"] .fluted-glass-layer {
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.92) 0px,
+    rgba(255, 255, 255, 1) 1px,
+    rgba(0, 0, 0, 0.012) 4px,
+    rgba(0, 0, 0, 0.048) 16px,
+    rgba(0, 0, 0, 0.012) 28px,
+    rgba(255, 255, 255, 0.92) 32px
+  );
+  -webkit-mask-image: radial-gradient(ellipse 68% 58% at 50% 42%, transparent 28%, rgba(0, 0, 0, 0.3) 64%, black 100%);
+  mask-image: radial-gradient(ellipse 68% 58% at 50% 42%, transparent 28%, rgba(0, 0, 0, 0.3) 64%, black 100%);
+  opacity: 0.65;
+}
+
+[data-theme="light"] .fluted-noise-layer {
+  opacity: 0.28;
+  mix-blend-mode: multiply;
 }
 
 /* -------------------------------------------------------------
@@ -342,10 +420,15 @@ body {
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border);
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: var(--radius-full);
   padding: 8px 18px;
   box-shadow: var(--shadow-sm);
   transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+[data-theme="light"] .navbar {
+  border-top: 1px solid rgba(255, 255, 255, 0.95);
 }
 
 .nav-brand {
