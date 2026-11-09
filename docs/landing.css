@@ -1117,7 +1117,8 @@ body {
   padding: 32px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: 20px;
   box-shadow: var(--shadow-sm);
   transition: transform 0.25s var(--ease-spring), border-color 0.2s ease, box-shadow 0.2s ease;
   overflow: hidden;
@@ -1136,7 +1137,7 @@ body {
 .bento-col-12 { grid-column: span 12; }
 
 .bento-card-top {
-  margin-bottom: 24px;
+  margin-bottom: 0;
 }
 
 .bento-badge {
@@ -1166,6 +1167,8 @@ body {
 
 .bento-visual {
   width: 100%;
+  flex: 1;
+  min-height: 280px;
   border-radius: var(--radius-md);
   overflow: hidden;
   border: 1px solid var(--border);
@@ -1173,12 +1176,50 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 .bento-visual img {
-  width: 100%;
+  max-width: 100%;
+  max-height: 320px;
+  width: auto;
   height: auto;
   display: block;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
+  transition: transform 0.25s var(--ease-spring);
+}
+
+.bento-card:hover .bento-visual img {
+  transform: scale(1.02);
+}
+
+/* Horizontal 2-column layout for 8-column cards on desktop */
+@media (min-width: 961px) {
+  .bento-card.bento-col-8 {
+    display: grid;
+    grid-template-columns: 1fr 310px;
+    align-items: center;
+    gap: 32px;
+  }
+
+  .bento-card.bento-col-8 .bento-card-top {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
+  }
+
+  .bento-card.bento-col-8 .bento-visual {
+    height: 100%;
+    min-height: 380px;
+    max-height: 400px;
+  }
+
+  .bento-card.bento-col-8 .bento-visual img {
+    max-height: 360px;
+  }
 }
 
 /* Audio Player Card */
