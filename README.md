@@ -3,6 +3,7 @@
 > A clean, distraction-free Chrome extension for site-specific focus timers and daily screen time limits.
 
 [![Manifest V3](https://img.shields.io/badge/Manifest-V3-blue.svg)](https://developer.chrome.com/docs/extensions/mv3/intro/)
+[![Release: v1.0.0](https://img.shields.io/badge/Release-v1.0.0-orange.svg)](https://github.com/arkhabw/Zentime/releases/tag/v1.0.0)
 [![License: MIT](https://img.shields.io/badge/License-MIT-black.svg)](LICENSE)
 [![Vanilla JS](https://img.shields.io/badge/Vanilla-JS-yellow.svg)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
 [![Anti--Slop UI](https://img.shields.io/badge/Design-Anti--Slop%20Crafted-emerald.svg)](#design-philosophy)
@@ -110,19 +111,20 @@ Zentime is crafted with strict **Anti-Slop UI** discipline:
 
 Since Zentime is an unpacked extension, you can install it in Google Chrome in less than a minute:
 
-1. **Clone or Download the Repository**:
-   ```bash
-   git clone https://github.com/arkhabw/Zentime.git
-   ```
-2. **Open Chrome Extensions Manager**:
-   - In Chrome's address bar, navigate to: `chrome://extensions/`
-3. **Enable Developer Mode**:
-   - Toggle the **Developer mode** switch in the top-right corner.
-4. **Load Unpacked Extension**:
-   - Click the **Load unpacked** button in the top-left corner.
-   - Select the `Zentime` directory (where `manifest.json` is located).
-5. **Pin to Toolbar**:
-   - Click the puzzle icon (Extensions) in your browser toolbar and pin **Zentime** for easy access.
+### Option A: Quick ZIP Download (Recommended)
+1. Download **[zentime-v1.0.0.zip](https://github.com/arkhabw/Zentime/releases/download/v1.0.0/zentime-v1.0.0.zip)** from the [Latest Release](https://github.com/arkhabw/Zentime/releases/tag/v1.0.0).
+2. Extract the ZIP file to a folder on your computer.
+
+### Option B: Clone via Git
+```bash
+git clone https://github.com/arkhabw/Zentime.git
+```
+
+### Enable in Google Chrome:
+1. Open Chrome and navigate to: `chrome://extensions/`
+2. Toggle **Developer mode** in the top-right corner.
+3. Click **Load unpacked** and select the folder (where `manifest.json` is located).
+4. Click the Extensions (puzzle) icon in your toolbar and pin **Zentime** for 1-click access.
 
 ---
 
