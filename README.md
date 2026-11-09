@@ -34,12 +34,31 @@ Built strictly under **Manifest V3** with zero external dependencies, Zentime ru
 - **One-Click Phase Progression**: Skip breaks early or start the next cycle seamlessly.
 
 ### 📊 Mode 3: Daily Screen Time Limits & Mindful Blocker
-- **Real-Time Active-Tab Tracking**: Second-by-second precision monitoring when actively focused; automatically pauses the moment you switch tabs or minimize the browser.
+- **Real-Time Active-Tab Tracking**: Second-by-second precision monitoring across all visited websites; automatically pauses the moment you switch tabs or minimize the browser.
 - **Configurable Daily Quotas**: Set allowance per website (e.g., 30 minutes on `youtube.com`).
 - **Mindful Site Blocker (`blocked.html`)**: Automatically redirects to an aesthetic Apple HIG-styled "Take a Breath" screen when quota is exceeded.
 - **Emergency +5m Snooze**: Provides a mindful grace period button (+5m) or a single-click tab closer.
 - **Dynamic Usage Bar**: Visual indicators that shift from safe to warning (at 70%) and alert states (at 100%).
 - **Site Management Feed**: View and delete tracked websites with one click.
+
+### 📈 Mode 4: 7-Day Screen Time Analytics & Day Drilldown
+- **Pure CSS/SVG 7-Day Bar Chart**: Clean vertical bar chart showing daily screen time distribution over the past week.
+- **Interactive Day Drilldown**: Click any day bar (e.g. Friday) to instantly filter top visited domains and metrics for that specific date.
+- **7-Day Reset Button**: High-contrast `← 7 Hari` button to return to the weekly aggregate overview.
+- **Automatic 7-Day Retention Purge**: Data older than 7 days is automatically purged on startup to preserve local storage.
+
+### ⌨️ Power-User Shortcuts & Context Menus
+- **Global Keyboard Shortcuts**:
+  - `Alt + Shift + Z`: Open/close the Zentime popup from any webpage.
+  - `Alt + Shift + S`: Start a 25m Pomodoro focus session on the active tab instantly.
+  - `Alt + Shift + B`: Trigger an instant mindful pause screen.
+- **Right-Click Context Menus**: Right-click anywhere on a webpage to start a Pomodoro session or configure a daily limit.
+- **Customizable**: Quick-link button to customize shortcuts via `chrome://extensions/shortcuts`.
+
+### ⚙️ Settings Modal & Audio Control
+- **Dedicated Settings Panel**: Accessible via the gear icon in the header.
+- **Sound Toggle Switch**: Enable or mute the gentle 10-second Tibetan singing bowl chime.
+- **Privacy Transparency**: Clear offline data guarantee displayed in-app.
 
 ### 🔔 System Notifications, Audio Chimes & Live Badges
 - **10-Second Gentle Audio Chime**: Calming harmonic chords synthesized via pure Web Audio API when timers finish or quotas are hit.
@@ -111,23 +130,55 @@ Since Zentime is an unpacked extension, you can install it in Google Chrome in l
 ## Project Structure
 
 ```text
-Zentime/
+web-timer-extension/
+├── fonts/
+│   ├── JetBrainsMono-Variable.woff2 # Tabular numbers font
+│   └── PlusJakartaSans-Variable.woff2 # Clean interface font
 ├── icons/
 │   ├── icon16.png        # Toolbar icon (16x16)
 │   ├── icon48.png        # Extension management icon (48x48)
 │   └── icon128.png       # Web Store & notification icon (128x128)
+├── store-assets/         # Chrome Web Store promotional graphics
+│   ├── preview.html      # Asset visualizer & 1-click PNG exporter
+│   ├── promo-small-440x280.svg
+│   ├── marquee-1400x560.svg
+│   ├── screenshot-1-timer.svg
+│   ├── screenshot-2-blocker.svg
+│   ├── screenshot-3-insights.svg
+│   └── screenshot-4-settings.svg
 ├── audio.html            # Offscreen document host for Web Audio
 ├── audio.js              # Synthesized 10s tranquil harmonic bell chime
-├── background.js         # Service worker (real-time tracking, blocker, alarms)
-├── blocked.html          # Mindful "Take a Breath" screen (Option A)
+├── background.js         # Service worker (real-time tracking, blocker, alarms, shortcuts)
+├── blocked.html          # Mindful "Take a Breath" screen
 ├── blocked.css           # Apple HIG styling for mindful blocker
 ├── blocked.js            # Interstitial logic (Close Tab & +5m snooze)
 ├── manifest.json         # Extension configuration & MV3 permissions
-├── popup.html            # Main popup interface
+├── package.js            # Automated packaging script (Node.js)
+├── package-extension.ps1 # Packaging script (PowerShell)
+├── popup.html            # Main 4-tab segmented popup interface
 ├── popup.css             # Anti-slop matte styling & dark mode tokens
-├── popup.js              # UI controller, timer loops, & storage sync
+├── popup.js              # UI controller, timer loops, chart rendering, & storage sync
+├── STORE_LISTING.md      # Ready-to-use Chrome Web Store copy & justifications
+├── PRIVACY_POLICY.md     # 100% offline privacy policy documentation
+├── RELEASE_GUIDE.md      # Step-by-step Chrome Web Store submission guide
 └── README.md             # Project documentation
 ```
+
+---
+
+## 📦 Building the Distribution Package
+
+To build a clean `.zip` archive ready for upload to the Chrome Web Store:
+
+```bash
+# Using Node.js:
+node package.js
+
+# Or using PowerShell:
+.\package-extension.ps1
+```
+
+The distribution bundle will be generated in `dist/zentime-v1.0.0.zip` (verified 100% free of `.git`, markdown, and test files).
 
 ---
 
@@ -137,10 +188,12 @@ Zentime adheres to the principle of least privilege:
 
 | Permission | Purpose |
 |---|---|
-| `tabs` | Identifies current domain name to attach timers and measure active tab time. |
+| `tabs` | Identifies active domain name to measure screen time and display the mindful block page when limits are reached. |
 | `alarms` | Runs reliable background alarms even when the popup is closed. |
 | `notifications` | Notifies you when a focus session ends or a screen time limit is hit. |
 | `storage` | Stores your timer preferences and daily usage locally on your machine. |
+| `offscreen` | Synthesizes gentle Tibetan singing bowl audio chimes via Web Audio API. |
+| `contextMenus` | Provides quick right-click actions ("Start 25m focus", "Set daily limit"). |
 
 > **Privacy Guarantee**: Zentime does **not** collect, track, or transmit any browsing history or personal data. Everything remains strictly inside your local browser.
 

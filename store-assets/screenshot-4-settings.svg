@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 800" width="1280" height="800">
+  <defs>
+    <radialGradient id="settingsGlow" cx="50%" cy="40%" r="75%">
+      <stop offset="0%" stop-color="#3730A3" stop-opacity="0.6"/>
+      <stop offset="50%" stop-color="#0F172A" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#070A12" stop-opacity="1"/>
+    </radialGradient>
+    <linearGradient id="cardGrad4" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E293B"/>
+      <stop offset="100%" stop-color="#0F172A"/>
+    </linearGradient>
+    <filter id="shadow4" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="24" stdDeviation="36" flood-color="#000" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1280" height="800" fill="url(#settingsGlow)"/>
+
+  <!-- Headline Header -->
+  <g transform="translate(640, 68)" text-anchor="middle">
+    <text font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="700" fill="#A5B4FC" letter-spacing="2">FEATURE 04 / POWER SHORTCUTS &amp; SETTINGS</text>
+    <text y="42" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="36" font-weight="800" fill="#FFFFFF" letter-spacing="-0.8">Keyboard Driven, Accessible, &amp; Tailored to You</text>
+    <text y="74" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="400" fill="#94A3B8">Global shortcuts for hands-free focus, Web Audio sound toggles, and seamless dark &amp; light modes.</text>
+  </g>
+
+  <!-- Centered Settings Panel Mockup -->
+  <g transform="translate(415, 180)" filter="url(#shadow4)">
+    <rect width="450" height="570" rx="30" fill="url(#cardGrad4)" stroke="rgba(255,255,255,0.18)" stroke-width="1.5"/>
+
+    <!-- Settings Modal Titlebar -->
+    <g transform="translate(24, 24)">
+      <!-- Gear icon circle -->
+      <circle cx="16" cy="16" r="16" fill="#4F46E5"/>
+      <path d="M16 11 a5 5 0 1 0 0 10 5 5 0 0 0 0-10 z" fill="none" stroke="#FFFFFF" stroke-width="2"/>
+      <circle cx="16" cy="16" r="2" fill="#FFFFFF"/>
+
+      <text x="44" y="15" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="16" font-weight="700" fill="#FFFFFF">Pengaturan Zentime</text>
+      <text x="44" y="30" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="11" fill="#94A3B8">Pintasan keyboard &amp; preferensi audio</text>
+
+      <!-- Close X button -->
+      <circle cx="390" cy="16" r="14" fill="rgba(255,255,255,0.08)"/>
+      <path d="M385 11 L395 21 M395 11 L385 21" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+    </g>
+
+    <!-- Section 1: Keyboard Shortcuts Card -->
+    <g transform="translate(24, 76)">
+      <rect width="402" height="236" rx="16" fill="rgba(0,0,0,0.3)" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+      <text x="18" y="28" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="12" font-weight="700" fill="#E2E8F0">⌨️ Pintasan Keyboard Global</text>
+      <text x="18" y="46" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="10.5" fill="#94A3B8">Bisa digunakan langsung dari halaman web mana pun</text>
+
+      <!-- Shortcut 1: Buka Popup -->
+      <g transform="translate(18, 62)">
+        <rect width="366" height="42" rx="10" fill="rgba(255,255,255,0.04)"/>
+        <text x="14" y="26" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="12" fill="#FFFFFF">Buka / Tutup Popup</text>
+        <g transform="translate(250, 8)">
+          <rect width="102" height="26" rx="6" fill="#4F46E5"/>
+          <text x="51" y="17" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#FFFFFF">Alt+Shift+Z</text>
+        </g>
+      </g>
+
+      <!-- Shortcut 2: Quick Start Pomodoro -->
+      <g transform="translate(18, 112)">
+        <rect width="366" height="42" rx="10" fill="rgba(255,255,255,0.04)"/>
+        <text x="14" y="26" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="12" fill="#FFFFFF">Mulai Fokus 25m Instan</text>
+        <g transform="translate(250, 8)">
+          <rect width="102" height="26" rx="6" fill="#4F46E5"/>
+          <text x="51" y="17" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#FFFFFF">Alt+Shift+S</text>
+        </g>
+      </g>
+
+      <!-- Shortcut 3: Mindful Pause -->
+      <g transform="translate(18, 162)">
+        <rect width="366" height="42" rx="10" fill="rgba(255,255,255,0.04)"/>
+        <text x="14" y="26" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="12" fill="#FFFFFF">Jeda Sejenak (Mindful)</text>
+        <g transform="translate(250, 8)">
+          <rect width="102" height="26" rx="6" fill="#4F46E5"/>
+          <text x="51" y="17" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#FFFFFF">Alt+Shift+B</text>
+        </g>
+      </g>
+
+      <!-- Customise shortcuts button -->
+      <g transform="translate(18, 212)">
+        <text x="0" y="14" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="11" font-weight="600" fill="#818CF8">⚙️ Sesuaikan Tombol di chrome://extensions/shortcuts ↗</text>
+      </g>
+    </g>
+
+    <!-- Section 2: Audio & Chimes Card -->
+    <g transform="translate(24, 326)">
+      <rect width="402" height="100" rx="16" fill="rgba(0,0,0,0.3)" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+      <text x="18" y="28" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="12" font-weight="700" fill="#E2E8F0">🔔 Suara Notifikasi Genta Lembut</text>
+      <text x="18" y="46" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="10.5" fill="#94A3B8">Sintesis Web Audio (Mangkuk Bernyanyi Tibet 10 detik)</text>
+
+      <!-- Sound Toggle Row -->
+      <g transform="translate(18, 58)">
+        <text x="0" y="22" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="12" fill="#FFFFFF">Bunyikan genta saat sesi selesai</text>
+        
+        <!-- iOS Style Switch (Active green) -->
+        <g transform="translate(315, 6)">
+          <rect width="48" height="26" rx="13" fill="#10B981"/>
+          <circle cx="34" cy="13" r="10" fill="#FFFFFF"/>
+        </g>
+      </g>
+    </g>
+
+    <!-- Section 3: Privacy Transparency Footer Card -->
+    <g transform="translate(24, 442)">
+      <rect width="402" height="96" rx="16" fill="rgba(16, 185, 129, 0.08)" stroke="rgba(16, 185, 129, 0.2)" stroke-width="1"/>
+      <text x="18" y="26" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="12" font-weight="700" fill="#6EE7B7">🛡️ Privasi 100% Offline</text>
+      <text x="18" y="46" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="10.5" fill="#E2E8F0">
+        Data waktu tersimpan murni di perangkat Anda.
+      </text>
+      <text x="18" y="64" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="10" fill="#94A3B8">
+        Tanpa akun • Tanpa server cloud • Retensi otomatis bergulir 7 hari
+      </text>
+    </g>
+  </g>
+</svg>

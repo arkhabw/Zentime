@@ -1,0 +1,147 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 800" width="1280" height="800">
+  <defs>
+    <radialGradient id="insightsGlow" cx="50%" cy="40%" r="75%">
+      <stop offset="0%" stop-color="#064E3B" stop-opacity="0.6"/>
+      <stop offset="45%" stop-color="#0F172A" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#060911" stop-opacity="1"/>
+    </radialGradient>
+    <linearGradient id="cardGrad3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E293B"/>
+      <stop offset="100%" stop-color="#0F172A"/>
+    </linearGradient>
+    <linearGradient id="barActiveGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#10B981"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+    <filter id="shadow3" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="24" stdDeviation="34" flood-color="#000" flood-opacity="0.7"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1280" height="800" fill="url(#insightsGlow)"/>
+
+  <!-- Headline Header -->
+  <g transform="translate(640, 68)" text-anchor="middle">
+    <text font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="700" fill="#34D399" letter-spacing="2">FEATURE 03 / 7-DAY SCREEN TIME INSIGHTS</text>
+    <text y="42" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="36" font-weight="800" fill="#FFFFFF" letter-spacing="-0.8">Actionable Self-Awareness with Day Drilldown</text>
+    <text y="74" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="400" fill="#94A3B8">Tap any day bar to filter top distracting domains. 100% private with automatic 7-day rolling purge.</text>
+  </g>
+
+  <!-- Centered Popup Mockup Card (Tab 4 - Insights) -->
+  <g transform="translate(430, 185)" filter="url(#shadow3)">
+    <rect width="420" height="565" rx="28" fill="url(#cardGrad3)" stroke="rgba(255,255,255,0.18)" stroke-width="1.5"/>
+
+    <!-- Header -->
+    <g transform="translate(24, 20)">
+      <circle cx="16" cy="16" r="16" fill="#10B981"/>
+      <text x="42" y="14" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="15" font-weight="700" fill="#FFFFFF">Zentime</text>
+      <text x="42" y="28" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="11" font-weight="500" fill="#34D399">● Analitik Layar</text>
+      <rect x="315" y="4" width="55" height="22" rx="11" fill="rgba(16,185,129,0.2)"/>
+      <text x="342" y="19" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="10" font-weight="700" fill="#6EE7B7">7 HARI</text>
+    </g>
+
+    <!-- Navigation -->
+    <g transform="translate(24, 68)">
+      <rect width="372" height="32" rx="8" fill="rgba(0,0,0,0.35)"/>
+      <rect x="280" y="2" width="90" height="28" rx="6" fill="#10B981"/>
+      <text x="45" y="20" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="11" fill="#94A3B8">Timer</text>
+      <text x="135" y="20" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="11" fill="#94A3B8">Pomodoro</text>
+      <text x="220" y="20" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="11" fill="#94A3B8">Batas</text>
+      <text x="325" y="20" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="11" font-weight="600" fill="#064E3B">Wawasan</text>
+    </g>
+
+    <!-- Summary Metrics Card with Active Day Drilldown -->
+    <g transform="translate(24, 116)">
+      <rect width="372" height="74" rx="14" fill="rgba(0,0,0,0.3)" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+      <text x="16" y="22" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="11" font-weight="600" fill="#94A3B8">TOTAL HARI JUMAT (6 NOV)</text>
+      <text x="16" y="48" font-family="'JetBrains Mono', monospace" font-size="24" font-weight="800" fill="#FFFFFF">3j 15m</text>
+      <text x="16" y="64" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="10" font-weight="500" fill="#34D399">Terkonsentrasi pada jam produktif sore</text>
+
+      <!-- High contrast Back to 7 Days button -->
+      <g transform="translate(262, 20)">
+        <rect width="94" height="34" rx="10" fill="#10B981"/>
+        <text x="47" y="21" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="11" font-weight="700" fill="#064E3B">← 7 Hari</text>
+      </g>
+    </g>
+
+    <!-- 7-Day Bar Chart Section -->
+    <g transform="translate(24, 206)">
+      <rect width="372" height="150" rx="14" fill="rgba(0,0,0,0.25)" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+      
+      <!-- Chart Baseline -->
+      <line x1="20" y1="110" x2="352" y2="110" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+
+      <!-- 7 Bars (Sab, Min, Sen, Sel, Rab, Kam, Jum [Selected]) -->
+      <!-- Bar 1: Sab (45m) -->
+      <rect x="36" y="80" width="28" height="30" rx="4" fill="rgba(255,255,255,0.15)"/>
+      <text x="50" y="126" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="10" fill="#64748B">Sab</text>
+
+      <!-- Bar 2: Min (30m) -->
+      <rect x="82" y="90" width="28" height="20" rx="4" fill="rgba(255,255,255,0.15)"/>
+      <text x="96" y="126" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="10" fill="#64748B">Min</text>
+
+      <!-- Bar 3: Sen (1j 40m) -->
+      <rect x="128" y="55" width="28" height="55" rx="4" fill="rgba(255,255,255,0.15)"/>
+      <text x="142" y="126" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="10" fill="#64748B">Sen</text>
+
+      <!-- Bar 4: Sel (2j 10m) -->
+      <rect x="174" y="40" width="28" height="70" rx="4" fill="rgba(255,255,255,0.15)"/>
+      <text x="188" y="126" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="10" fill="#64748B">Sel</text>
+
+      <!-- Bar 5: Rab (1j 15m) -->
+      <rect x="220" y="65" width="28" height="45" rx="4" fill="rgba(255,255,255,0.15)"/>
+      <text x="234" y="126" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="10" fill="#64748B">Rab</text>
+
+      <!-- Bar 6: Kam (2j 05m) -->
+      <rect x="266" y="42" width="28" height="68" rx="4" fill="rgba(255,255,255,0.15)"/>
+      <text x="280" y="126" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="10" fill="#64748B">Kam</text>
+
+      <!-- Bar 7: Jum (3j 15m) - ACTIVE HIGHLIGHT -->
+      <rect x="312" y="18" width="28" height="92" rx="5" fill="url(#barActiveGrad)" stroke="#34D399" stroke-width="1.5"/>
+      <text x="326" y="126" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="10" font-weight="700" fill="#34D399">Jum</text>
+
+      <!-- Active Day Indicator Tag -->
+      <rect x="302" y="4" width="48" height="14" rx="4" fill="#10B981"/>
+      <text x="326" y="14" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="8.5" font-weight="700" fill="#064E3B">3j 15m</text>
+    </g>
+
+    <!-- Top Sites Leaderboard -->
+    <g transform="translate(24, 372)">
+      <text x="0" y="0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="12" font-weight="700" fill="#FFFFFF">Aktivitas Hari Jumat (Top 3):</text>
+      
+      <!-- Site Item 1: youtube.com -->
+      <g transform="translate(0, 14)">
+        <rect width="372" height="46" rx="10" fill="rgba(0,0,0,0.3)" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+        <circle cx="24" cy="23" r="10" fill="#EF4444"/>
+        <text x="44" y="22" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="12" font-weight="600" fill="#FFFFFF">youtube.com</text>
+        <text x="44" y="36" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="9.5" fill="#94A3B8">51% dari waktu hari ini</text>
+        <text x="356" y="27" text-anchor="end" font-family="'JetBrains Mono', monospace" font-size="13" font-weight="700" fill="#F87171">1j 40m</text>
+        <rect x="12" y="42" width="348" height="2" fill="rgba(255,255,255,0.05)"/>
+        <rect x="12" y="42" width="177" height="2" fill="#EF4444"/>
+      </g>
+
+      <!-- Site Item 2: github.com -->
+      <g transform="translate(0, 68)">
+        <rect width="372" height="46" rx="10" fill="rgba(0,0,0,0.3)" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+        <circle cx="24" cy="23" r="10" fill="#6366F1"/>
+        <text x="44" y="22" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="12" font-weight="600" fill="#FFFFFF">github.com</text>
+        <text x="44" y="36" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="9.5" fill="#94A3B8">33% dari waktu hari ini</text>
+        <text x="356" y="27" text-anchor="end" font-family="'JetBrains Mono', monospace" font-size="13" font-weight="700" fill="#818CF8">1j 05m</text>
+        <rect x="12" y="42" width="348" height="2" fill="rgba(255,255,255,0.05)"/>
+        <rect x="12" y="42" width="115" height="2" fill="#6366F1"/>
+      </g>
+
+      <!-- Site Item 3: twitter.com -->
+      <g transform="translate(0, 122)">
+        <rect width="372" height="46" rx="10" fill="rgba(0,0,0,0.3)" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+        <circle cx="24" cy="23" r="10" fill="#0EA5E9"/>
+        <text x="44" y="22" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="12" font-weight="600" fill="#FFFFFF">x.com (twitter)</text>
+        <text x="44" y="36" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="9.5" fill="#94A3B8">16% dari waktu hari ini</text>
+        <text x="356" y="27" text-anchor="end" font-family="'JetBrains Mono', monospace" font-size="13" font-weight="700" fill="#38BDF8">30m</text>
+        <rect x="12" y="42" width="348" height="2" fill="rgba(255,255,255,0.05)"/>
+        <rect x="12" y="42" width="56" height="2" fill="#0EA5E9"/>
+      </g>
+    </g>
+  </g>
+</svg>

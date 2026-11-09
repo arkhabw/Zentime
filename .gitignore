@@ -11,3 +11,8 @@ Desktop.ini
 
 # Logs
 *.log
+
+# Build & Distribution
+dist/
+*.zip
+
