@@ -15,7 +15,21 @@ const I18N = {
     unsupportedWarning: "Timer hanya aktif pada alamat web reguler (http/https).",
     tabManual: "Timer",
     tabPomodoro: "Pomodoro",
-    tabAuto: "Batas Harian",
+    tabAuto: "Batas",
+    tabInsights: "Wawasan",
+    totalThisWeek: "Total Minggu Ini",
+    monitoredUsageOnly: "Dari website yang dibatasi",
+    dailyAverage: "Rata-rata / Hari",
+    mostActiveDay: "Hari Teraktif",
+    last7DaysChart: "Aktivitas 7 Hari Terakhir",
+    past7DaysBadge: "7 Hari",
+    topSitesTitle: "Situs Teratas Minggu Ini",
+    noDataThisWeekTitle: "Belum ada aktivitas minggu ini.",
+    noDataThisWeekSub: "Waktu dari situs yang kamu batasi akan tercatat otomatis di sini.",
+    perDaySuffix: " / hari",
+    todayLabel: "Hari Ini",
+    dayNames: ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"],
+    dayFullNames: ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"],
     pomoCycleReady: "Siklus 1 dari 4",
     pomoScheduleTitle: "Jadwal Sesi",
     pomoLongBreakNote: "Istirahat panjang 15 menit otomatis setelah 4 siklus.",
@@ -71,7 +85,21 @@ const I18N = {
     unsupportedWarning: "Timer only works on standard websites (http/https).",
     tabManual: "Timer",
     tabPomodoro: "Pomodoro",
-    tabAuto: "Daily Limits",
+    tabAuto: "Limits",
+    tabInsights: "Insights",
+    totalThisWeek: "Total This Week",
+    monitoredUsageOnly: "From monitored websites",
+    dailyAverage: "Daily Average",
+    mostActiveDay: "Most Active Day",
+    last7DaysChart: "Last 7 Days Activity",
+    past7DaysBadge: "7 Days",
+    topSitesTitle: "Top Sites This Week",
+    noDataThisWeekTitle: "No weekly activity yet.",
+    noDataThisWeekSub: "Usage time from your monitored websites will automatically accumulate here.",
+    perDaySuffix: " / day",
+    todayLabel: "Today",
+    dayNames: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    dayFullNames: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
     pomoCycleReady: "Cycle 1 of 4",
     pomoScheduleTitle: "Session Schedule",
     pomoLongBreakNote: "15-minute long break automatically after 4 cycles.",
@@ -148,6 +176,45 @@ function formatMinutesSeconds(totalSeconds) {
   return `${mins}${minUnit} ${secs}${secUnit}`;
 }
 
+// Helper: Format jam dan menit untuk analitik mingguan
+function formatHoursMinutes(totalSeconds) {
+  if (!totalSeconds || totalSeconds <= 0) return "0m";
+  if (totalSeconds < 60) return `${totalSeconds}${t("timeSec")}`;
+
+  const totalMinutes = Math.floor(totalSeconds / 60);
+  const hours = Math.floor(totalMinutes / 60);
+  const mins = totalMinutes % 60;
+  const hrUnit = currentLang === "id" ? "j" : "h";
+  const minUnit = "m";
+
+  if (hours === 0) {
+    return `${mins}${minUnit}`;
+  }
+  if (mins === 0) {
+    return `${hours}${hrUnit}`;
+  }
+  return `${hours}${hrUnit} ${mins}${minUnit}`;
+}
+
+// Helper: Menghasilkan 7 hari kalender terakhir (dari H-6 sampai Hari Ini)
+function getPast7Days() {
+  const days = [];
+  const now = new Date();
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+    const yr = d.getFullYear();
+    const mo = String(d.getMonth() + 1).padStart(2, "0");
+    const dy = String(d.getDate()).padStart(2, "0");
+    days.push({
+      dateKey: `${yr}-${mo}-${dy}`,
+      dateObj: d,
+      dayOfWeek: d.getDay(),
+      isToday: i === 0,
+    });
+  }
+  return days;
+}
+
 // Helper: Perbandingan domain yang fleksibel (misal www.youtube.com cocok dengan youtube.com)
 function matchDomain(urlDomain, targetDomain) {
   if (!urlDomain || !targetDomain) return false;
@@ -218,9 +285,11 @@ const unsupportedWarning = document.getElementById("unsupportedWarning");
 const tabManualBtn = document.getElementById("tabManualBtn");
 const tabPomoBtn = document.getElementById("tabPomoBtn");
 const tabAutoBtn = document.getElementById("tabAutoBtn");
+const tabInsightsBtn = document.getElementById("tabInsightsBtn");
 const tabManualPane = document.getElementById("tab-manual");
 const tabPomoPane = document.getElementById("tab-pomodoro");
 const tabAutoPane = document.getElementById("tab-auto");
+const tabInsightsPane = document.getElementById("tab-insights");
 
 // Mode 1 Elements
 const setupView = document.getElementById("setupView");
@@ -281,6 +350,15 @@ const allLimitsList = document.getElementById("allLimitsList");
 const allLimitsCount = document.getElementById("allLimitsCount");
 const emptyLimitsMsg = document.getElementById("emptyLimitsMsg");
 
+// Mode 4 (Wawasan / 7-Day Screen Time Insights) Elements
+const insightsTotalWeek = document.getElementById("insightsTotalWeek");
+const insightsDailyAvg = document.getElementById("insightsDailyAvg");
+const insightsPeakDay = document.getElementById("insightsPeakDay");
+const insightsBarChart = document.getElementById("insightsBarChart");
+const insightsSitesList = document.getElementById("insightsSitesList");
+const insightsSitesCount = document.getElementById("insightsSitesCount");
+const insightsEmptyMsg = document.getElementById("insightsEmptyMsg");
+
 // -------------------------------------------------------------
 // Inisialisasi
 // -------------------------------------------------------------
@@ -305,6 +383,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
     renderMode2();
     await renderPomodoro();
+    renderMode4Insights();
   }, 1000);
 
   // Sync terakhir saat popup ditutup
@@ -427,7 +506,7 @@ function applyTheme(theme) {
 }
 
 // -------------------------------------------------------------
-// 3. Navigasi Tab (Apple Segmented Control 3 Tab)
+// 3. Navigasi Tab (Apple Segmented Control 4 Tab)
 // -------------------------------------------------------------
 function setupTabs() {
   chrome.storage.local.get("activePopupTab", (data) => {
@@ -450,12 +529,21 @@ function setupTabs() {
     switchTab("tab-auto");
     chrome.storage.local.set({ activePopupTab: "tab-auto" });
   });
+
+  if (tabInsightsBtn) {
+    tabInsightsBtn.addEventListener("click", () => {
+      switchTab("tab-insights");
+      chrome.storage.local.set({ activePopupTab: "tab-insights" });
+      renderMode4Insights();
+    });
+  }
 }
 
 function switchTab(tabId) {
   const isManual = tabId === "tab-manual";
   const isPomo = tabId === "tab-pomodoro";
   const isAuto = tabId === "tab-auto";
+  const isInsights = tabId === "tab-insights";
 
   tabManualBtn.classList.toggle("active", isManual);
   tabManualBtn.setAttribute("aria-selected", isManual ? "true" : "false");
@@ -471,6 +559,16 @@ function switchTab(tabId) {
   tabAutoBtn.setAttribute("aria-selected", isAuto ? "true" : "false");
   tabAutoPane.classList.toggle("active", isAuto);
   tabAutoPane.classList.toggle("hidden", !isAuto);
+
+  if (tabInsightsBtn && tabInsightsPane) {
+    tabInsightsBtn.classList.toggle("active", isInsights);
+    tabInsightsBtn.setAttribute("aria-selected", isInsights ? "true" : "false");
+    tabInsightsPane.classList.toggle("active", isInsights);
+    tabInsightsPane.classList.toggle("hidden", !isInsights);
+    if (isInsights) {
+      renderMode4Insights();
+    }
+  }
 }
 
 // -------------------------------------------------------------
@@ -631,6 +729,7 @@ async function refreshUI() {
   renderMode1(manualTimers);
   await renderPomodoro();
   renderMode2();
+  renderMode4Insights();
 }
 
 // -------------------------------------------------------------
@@ -1218,4 +1317,236 @@ async function removeAutoLimit(domain) {
 
   chrome.runtime.sendMessage({ type: "AUTO_LIMIT_UPDATED" });
   await refreshUI();
+}
+
+// -------------------------------------------------------------
+// 10. Mode 4: Kalkulasi & Render Wawasan (7-Day Screen Time)
+// -------------------------------------------------------------
+function calculate7DayAnalytics() {
+  const days = getPast7Days();
+  const autoLimits = liveTracker.autoLimits || {};
+  const dailyUsage = liveTracker.dailyUsage || {};
+
+  // Hitung live offset untuk situs aktif saat popup sedang terbuka
+  let activeLiveOffset = 0;
+  let activeTargetDomain = "";
+  if (liveTracker.activeDomain) {
+    const limitMatch = findAutoLimit(liveTracker.activeDomain, autoLimits);
+    if (limitMatch && limitMatch.config && limitMatch.config.enabled) {
+      activeTargetDomain = limitMatch.key;
+      activeLiveOffset = Math.max(0, Math.floor((Date.now() - liveTracker.activeTimestamp) / 1000));
+    }
+  }
+
+  let totalWeeklySeconds = 0;
+  let maxDaySeconds = 0;
+  let peakDay = null;
+  const domainTotals = {};
+
+  const dayStats = days.map((day) => {
+    const usageForDay = dailyUsage[day.dateKey] || {};
+    let daySeconds = 0;
+
+    for (const [dom, record] of Object.entries(usageForDay)) {
+      let s = record.spentSeconds || 0;
+      if (day.isToday && dom === activeTargetDomain) {
+        s += activeLiveOffset;
+      }
+      daySeconds += s;
+      domainTotals[dom] = (domainTotals[dom] || 0) + s;
+    }
+
+    if (day.isToday && activeTargetDomain && !usageForDay[activeTargetDomain] && activeLiveOffset > 0) {
+      daySeconds += activeLiveOffset;
+      domainTotals[activeTargetDomain] = (domainTotals[activeTargetDomain] || 0) + activeLiveOffset;
+    }
+
+    totalWeeklySeconds += daySeconds;
+    if (daySeconds > maxDaySeconds) {
+      maxDaySeconds = daySeconds;
+      peakDay = {
+        dateKey: day.dateKey,
+        dayOfWeek: day.dayOfWeek,
+        seconds: daySeconds,
+      };
+    }
+
+    return {
+      ...day,
+      seconds: daySeconds,
+    };
+  });
+
+  const dailyAverageSeconds = Math.round(totalWeeklySeconds / 7);
+
+  const topSites = Object.entries(domainTotals)
+    .filter(([_, sec]) => sec > 0)
+    .sort((a, b) => b[1] - a[1])
+    .map(([domain, seconds]) => ({
+      domain,
+      seconds,
+      percentOfTotal: totalWeeklySeconds > 0 ? Math.round((seconds / totalWeeklySeconds) * 100) : 0,
+    }));
+
+  return {
+    dayStats,
+    totalWeeklySeconds,
+    dailyAverageSeconds,
+    maxDaySeconds,
+    peakDay,
+    topSites,
+  };
+}
+
+function renderMode4Insights() {
+  if (!tabInsightsPane) return;
+
+  const {
+    dayStats,
+    totalWeeklySeconds,
+    dailyAverageSeconds,
+    maxDaySeconds,
+    peakDay,
+    topSites,
+  } = calculate7DayAnalytics();
+
+  // 1. Weekly Summary Cards
+  if (insightsTotalWeek) {
+    insightsTotalWeek.textContent = formatHoursMinutes(totalWeeklySeconds);
+  }
+
+  if (insightsDailyAvg) {
+    insightsDailyAvg.textContent = `${formatHoursMinutes(dailyAverageSeconds)}${t("perDaySuffix")}`;
+  }
+
+  if (insightsPeakDay) {
+    if (peakDay && peakDay.seconds > 0) {
+      const dayName = t("dayNames")[peakDay.dayOfWeek] || "";
+      insightsPeakDay.textContent = `${dayName} (${formatHoursMinutes(peakDay.seconds)})`;
+    } else {
+      insightsPeakDay.textContent = "-";
+    }
+  }
+
+  // 2. 7-Day Vertical Bar Chart (In-Place / Stable DOM)
+  if (insightsBarChart) {
+    const existingCols = insightsBarChart.querySelectorAll(".chart-col");
+    const needsFullRebuild = existingCols.length !== 7 ||
+      existingCols[6]?.getAttribute("data-day") !== dayStats[6]?.dateKey;
+
+    if (needsFullRebuild) {
+      insightsBarChart.innerHTML = "";
+      dayStats.forEach((day) => {
+        const pct = maxDaySeconds > 0 ? Math.max(6, Math.round((day.seconds / maxDaySeconds) * 100)) : 0;
+        const dayFullName = t("dayFullNames")[day.dayOfWeek] || "";
+        const dayShortName = t("dayNames")[day.dayOfWeek] || "";
+        const formattedTime = formatHoursMinutes(day.seconds);
+        const tooltipText = `${dayFullName}: ${formattedTime}`;
+
+        const col = document.createElement("div");
+        col.className = `chart-col${day.isToday ? " is-today" : ""}`;
+        col.setAttribute("data-day", day.dateKey);
+        col.setAttribute("tabindex", "0");
+        col.setAttribute("role", "img");
+        col.setAttribute("aria-label", tooltipText);
+
+        col.innerHTML = `
+          <span class="chart-tooltip">${tooltipText}</span>
+          <div class="chart-track">
+            <div class="chart-fill" style="height: ${day.seconds > 0 ? pct + "%" : "0px"};"></div>
+          </div>
+          <span class="chart-label">${dayShortName}</span>
+        `;
+
+        col.addEventListener("click", () => {
+          const wasActive = col.classList.contains("active");
+          insightsBarChart.querySelectorAll(".chart-col").forEach((c) => c.classList.remove("active"));
+          if (!wasActive) col.classList.add("active");
+        });
+
+        insightsBarChart.appendChild(col);
+      });
+    } else {
+      existingCols.forEach((col, idx) => {
+        const day = dayStats[idx];
+        if (!day) return;
+
+        const pct = maxDaySeconds > 0 ? Math.max(6, Math.round((day.seconds / maxDaySeconds) * 100)) : 0;
+        const dayFullName = t("dayFullNames")[day.dayOfWeek] || "";
+        const dayShortName = t("dayNames")[day.dayOfWeek] || "";
+        const formattedTime = formatHoursMinutes(day.seconds);
+        const tooltipText = `${dayFullName}: ${formattedTime}`;
+
+        col.setAttribute("aria-label", tooltipText);
+
+        const tooltip = col.querySelector(".chart-tooltip");
+        if (tooltip) tooltip.textContent = tooltipText;
+
+        const fill = col.querySelector(".chart-fill");
+        if (fill) fill.style.height = day.seconds > 0 ? `${pct}%` : "0px";
+
+        const lbl = col.querySelector(".chart-label");
+        if (lbl) lbl.textContent = dayShortName;
+      });
+    }
+  }
+
+  // 3. Top Monitored Sites Breakdown
+  if (insightsSitesList && insightsEmptyMsg && insightsSitesCount) {
+    insightsSitesCount.textContent = topSites.length;
+
+    if (topSites.length === 0) {
+      insightsSitesList.innerHTML = "";
+      insightsEmptyMsg.classList.remove("hidden");
+    } else {
+      insightsEmptyMsg.classList.add("hidden");
+
+      const existingItems = insightsSitesList.querySelectorAll(".top-site-item");
+      const currentKeys = Array.from(existingItems).map((el) => el.getAttribute("data-domain"));
+      const newKeys = topSites.map((s) => s.domain);
+      const isStructureSame = currentKeys.length === newKeys.length &&
+        currentKeys.every((key, i) => key === newKeys[i]);
+
+      if (!isStructureSame) {
+        insightsSitesList.innerHTML = "";
+        topSites.forEach((site) => {
+          const li = document.createElement("li");
+          li.className = "top-site-item";
+          li.setAttribute("data-domain", site.domain);
+          const faviconUrl = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(site.domain)}&sz=32`;
+
+          li.innerHTML = `
+            <div class="top-site-meta">
+              <div class="top-site-info">
+                <img class="top-site-favicon" src="${faviconUrl}" alt="" onerror="this.src='icons/icon16.png'">
+                <span class="top-site-domain" title="${site.domain}">${site.domain}</span>
+              </div>
+              <div class="top-site-stats">
+                <span class="top-site-time">${formatHoursMinutes(site.seconds)}</span>
+                <span class="top-site-pct">${site.percentOfTotal}%</span>
+              </div>
+            </div>
+            <div class="top-site-track">
+              <div class="top-site-fill" style="width: ${site.percentOfTotal}%;"></div>
+            </div>
+          `;
+          insightsSitesList.appendChild(li);
+        });
+      } else {
+        existingItems.forEach((li, idx) => {
+          const site = topSites[idx];
+          if (!site) return;
+
+          const timeEl = li.querySelector(".top-site-time");
+          if (timeEl) timeEl.textContent = formatHoursMinutes(site.seconds);
+
+          const pctEl = li.querySelector(".top-site-pct");
+          if (pctEl) pctEl.textContent = `${site.percentOfTotal}%`;
+
+          const fillEl = li.querySelector(".top-site-fill");
+          if (fillEl) fillEl.style.width = `${site.percentOfTotal}%`;
+        });
+      }
+    }
+  }
 }

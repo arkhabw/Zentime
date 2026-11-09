@@ -49,6 +49,31 @@ function findAutoLimit(domain, autoLimits) {
   return null;
 }
 
+// Helper: Membersihkan riwayat penggunaan yang lebih lama dari 7 hari (Retensi 7 Hari Rolling)
+async function cleanupOldDailyUsage(dailyUsage) {
+  if (!dailyUsage || typeof dailyUsage !== "object") return false;
+
+  const validKeys = new Set();
+  const now = new Date();
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+    const yr = d.getFullYear();
+    const mo = String(d.getMonth() + 1).padStart(2, "0");
+    const dy = String(d.getDate()).padStart(2, "0");
+    validKeys.add(`${yr}-${mo}-${dy}`);
+  }
+
+  let modified = false;
+  for (const dateKey of Object.keys(dailyUsage)) {
+    if (!validKeys.has(dateKey)) {
+      delete dailyUsage[dateKey];
+      modified = true;
+    }
+  }
+
+  return modified;
+}
+
 // -------------------------------------------------------------
 // 1. Audio Chime Playback (Offscreen Document & Web Audio API)
 // -------------------------------------------------------------
@@ -283,6 +308,25 @@ function startRealtimeLoop() {
 
 startRealtimeLoop();
 
+// Lifecycle Handlers: Cleanup retensi data saat ekstensi diaktifkan atau browser dibuka
+chrome.runtime.onInstalled.addListener(async () => {
+  const { dailyUsage = {} } = await chrome.storage.local.get("dailyUsage");
+  const cleaned = await cleanupOldDailyUsage(dailyUsage);
+  if (cleaned) {
+    await chrome.storage.local.set({ dailyUsage });
+  }
+  startRealtimeLoop();
+});
+
+chrome.runtime.onStartup.addListener(async () => {
+  const { dailyUsage = {} } = await chrome.storage.local.get("dailyUsage");
+  const cleaned = await cleanupOldDailyUsage(dailyUsage);
+  if (cleaned) {
+    await chrome.storage.local.set({ dailyUsage });
+  }
+  startRealtimeLoop();
+});
+
 // -------------------------------------------------------------
 // 5. Event Listeners Pergantian Tab & Navigasi
 // -------------------------------------------------------------
@@ -478,6 +522,11 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
       await updateBadge();
     }
   } else if (alarm.name === "tracker_heartbeat" || alarm.name === "autolimit_deadline") {
+    const { dailyUsage = {} } = await chrome.storage.local.get("dailyUsage");
+    const cleaned = await cleanupOldDailyUsage(dailyUsage);
+    if (cleaned) {
+      await chrome.storage.local.set({ dailyUsage });
+    }
     await processTimeElapsed();
   }
 });
