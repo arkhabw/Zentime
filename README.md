@@ -3,6 +3,7 @@
 > A clean, distraction-free Chrome extension for site-specific focus timers and daily screen time limits.
 
 [![Manifest V3](https://img.shields.io/badge/Manifest-V3-blue.svg)](https://developer.chrome.com/docs/extensions/mv3/intro/)
+[![Website: Live](https://img.shields.io/badge/Website-Live%20Showcase-emerald.svg)](https://arkhabw.github.io/Zentime/)
 [![Release: v1.0.0](https://img.shields.io/badge/Release-v1.0.0-orange.svg)](https://github.com/arkhabw/Zentime/releases/tag/v1.0.0)
 [![License: MIT](https://img.shields.io/badge/License-MIT-black.svg)](LICENSE)
 [![Vanilla JS](https://img.shields.io/badge/Vanilla-JS-yellow.svg)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
