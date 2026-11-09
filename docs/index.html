@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zentime — Mindful Focus Countdown & Screen Time Limiter for Chrome</title>
+  
+  <!-- Meta & SEO -->
+  <meta name="description" content="A clean, distraction-free Chrome extension for site-specific focus countdowns, Pomodoro workflows, and daily screen time limits. 100% offline and private.">
+  <meta name="keywords" content="chrome extension, focus timer, pomodoro, screen time, productivity, digital wellbeing, website blocker">
+  <meta name="author" content="arkhabw">
+
+  <!-- Open Graph / Social Cards -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Zentime — Mindful Focus Countdown & Screen Time Limiter">
+  <meta property="og:description" content="Regain control of your screen time with precision per-website timers and gentle interstitial breaks. Zero trackers, 100% offline.">
+  <meta property="og:image" content="assets/preview-timer.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" sizes="16x16" href="icons/icon16.png">
+  <link rel="icon" type="image/png" sizes="48x48" href="icons/icon48.png">
+  <link rel="icon" type="image/png" sizes="128x128" href="icons/icon128.png">
+
+  <link rel="stylesheet" href="landing.css">
+</head>
+<body>
+
+  <!-- Ambient Glow Background -->
+  <div class="ambient-glow"></div>
+
+  <!-- Welcome Entrance Curtain -->
+  <div class="welcome-overlay" id="welcomeOverlay">
+    <img src="icons/icon128.png" alt="Zentime Logo" class="welcome-logo">
+    <h1 class="welcome-title">Zentime</h1>
+    <p class="welcome-sub">Inhale focus • Exhale distraction</p>
+  </div>
+
+  <!-- Floating Navigation Bar -->
+  <header class="navbar-wrapper">
+    <nav class="navbar">
+      <a href="#" class="nav-brand">
+        <img src="icons/icon48.png" alt="" class="nav-logo" width="26" height="26">
+        <span>Zentime</span>
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="#features" class="nav-link">Features</a></li>
+        <li><a href="#simulation" class="nav-link">Simulator</a></li>
+        <li><a href="#privacy" class="nav-link">Privacy</a></li>
+        <li><a href="#download" class="nav-link">Install</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <button id="themeToggleBtn" class="theme-toggle-btn" type="button" aria-label="Toggle Theme">
+          ☀️
+        </button>
+        <a href="https://github.com/arkhabw/Zentime" target="_blank" rel="noopener noreferrer" class="btn-secondary" style="padding: 8px 14px; font-size: 13px;">
+          ⭐ Star
+        </a>
+        <a href="https://github.com/arkhabw/Zentime/releases/download/v1.0.0/zentime-v1.0.0.zip" class="btn-nav-download">
+          Download ZIP
+        </a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Hero Section -->
+  <main>
+    <section class="hero-section">
+      <!-- Left Hero Content -->
+      <div class="hero-content scroll-reveal">
+        <a href="https://github.com/arkhabw/Zentime/releases/tag/v1.0.0" target="_blank" rel="noopener" class="version-pill">
+          <span class="pill-dot"></span>
+          <span>Zentime v1.0.0 is live for Google Chrome</span>
+          <span style="opacity: 0.6;">→</span>
+        </a>
+
+        <h1 class="hero-title">
+          Regain control of your screen time. <span>Mindfully.</span>
+        </h1>
+
+        <p class="hero-desc">
+          Per-website focus countdowns, structured Pomodoro cycles, and gentle interstitial breaks. Zero algorithms, zero trackers, 100% offline.
+        </p>
+
+        <div class="hero-ctas">
+          <a href="https://github.com/arkhabw/Zentime/releases/download/v1.0.0/zentime-v1.0.0.zip" class="btn-primary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Download Extension (ZIP)
+          </a>
+
+          <a href="https://github.com/arkhabw/Zentime" target="_blank" rel="noopener" class="btn-secondary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+            </svg>
+            GitHub Repository
+          </a>
+        </div>
+
+        <div class="hero-badges">
+          <span class="badge-item">🛡️ Manifest V3</span>
+          <span class="badge-dot">•</span>
+          <span class="badge-item">🔒 100% Offline</span>
+          <span class="badge-dot">•</span>
+          <span class="badge-item">⚡ Zero Trackers</span>
+          <span class="badge-dot">•</span>
+          <span class="badge-item">🎨 Apple HIG</span>
+        </div>
+      </div>
+
+      <!-- Right: Interactive Live Simulator Widget -->
+      <div class="widget-container scroll-reveal" id="simulation">
+        <div class="widget-frame">
+          <!-- Widget Header -->
+          <div class="widget-header">
+            <div class="widget-brand">Zentime <span>/ Focus</span></div>
+            <div class="widget-header-controls">
+              <span class="lang-pill">EN</span>
+              <span class="lang-pill">⚙️</span>
+            </div>
+          </div>
+
+          <!-- Active Target Site Bar -->
+          <div class="widget-domain-bar">
+            <div class="domain-left">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+              </svg>
+              <span>github.com</span>
+            </div>
+            <span class="domain-live-tag">Active</span>
+          </div>
+
+          <!-- Segmented Navigation -->
+          <div class="widget-segmented">
+            <button class="seg-btn active" data-tab="timer" type="button">Timer</button>
+            <button class="seg-btn" data-tab="pomodoro" type="button">Pomodoro</button>
+            <button class="seg-btn" data-tab="limits" type="button">Limits</button>
+            <button class="seg-btn" data-tab="insights" type="button">Insights</button>
+          </div>
+
+          <!-- TAB 1: TIMER VIEW -->
+          <div id="widgetModeTimer" class="widget-mode-view">
+            <div class="ring-timer-card">
+              <div class="ring-card-header">
+                <span class="ring-card-tag">● github.com</span>
+                <button id="heroSwitchStyleBtn" class="ring-style-btn" type="button" title="Switch Visual Style">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="4"></rect>
+                    <line x1="3" y1="9" x2="21" y2="9"></line>
+                  </svg>
+                </button>
+              </div>
+
+              <!-- Circular Ring -->
+              <div class="svg-ring-wrapper" id="heroRingWrapper">
+                <svg class="svg-ring" viewBox="0 0 160 160">
+                  <circle class="ring-track" cx="80" cy="80" r="72"></circle>
+                  <circle class="ring-fill" id="heroRingFill" cx="80" cy="80" r="72"></circle>
+                </svg>
+                <div class="ring-countdown-digits" id="heroCountdownDigits">24:57</div>
+              </div>
+
+              <!-- Linear Bar (Alternative Style) -->
+              <div id="heroLinearBar" style="display: none; width: 100%; height: 6px; background: var(--border); border-radius: 99px; margin-bottom: 12px; overflow: hidden;">
+                <div id="heroLinearFill" style="height: 100%; width: 75%; background: var(--text-main); border-radius: 99px;"></div>
+              </div>
+
+              <div class="ring-target-text">Target completion: 15:45</div>
+            </div>
+
+            <!-- Presets -->
+            <div class="widget-presets">
+              <button class="preset-chip" data-mins="15" type="button">15m</button>
+              <button class="preset-chip active" data-mins="25" type="button">25m</button>
+              <button class="preset-chip" data-mins="45" type="button">45m</button>
+              <button class="preset-chip" data-mins="60" type="button">60m</button>
+            </div>
+
+            <!-- Stop/Start Action -->
+            <button id="heroTimerActionBtn" class="widget-action-btn btn-stop" type="button">
+              Stop Timer
+            </button>
+          </div>
+
+          <!-- TAB 2: POMODORO VIEW -->
+          <div id="widgetModePomodoro" class="widget-mode-view" style="display: none; width: 100%;">
+            <div style="background: var(--bg-surface-elevated); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px; margin-bottom: 14px; text-align: center;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <div style="display: flex; gap: 6px;">
+                  <span style="color: var(--text-main);">●</span>
+                  <span style="color: var(--text-faint);">○</span>
+                  <span style="color: var(--text-faint);">○</span>
+                  <span style="color: var(--text-faint);">○</span>
+                </div>
+                <span style="font-size: 11.5px; color: var(--text-muted); font-weight: 600;">Cycle 1 of 4</span>
+              </div>
+              <div style="font-size: 13px; font-weight: 700; margin-bottom: 4px;">25m Focus • 5m Break</div>
+              <p style="font-size: 11.5px; color: var(--text-faint);">15-minute long break automatically after 4 cycles.</p>
+            </div>
+            <button class="widget-action-btn btn-start" type="button">Start Pomodoro</button>
+          </div>
+
+          <!-- TAB 3: LIMITS VIEW -->
+          <div id="widgetModeLimits" class="widget-mode-view" style="display: none; width: 100%;">
+            <div style="background: var(--bg-surface-elevated); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 14px; margin-bottom: 14px; text-align: left;">
+              <div style="font-size: 12px; font-weight: 700; margin-bottom: 4px;">Daily Limit for github.com</div>
+              <p style="font-size: 11px; color: var(--text-faint); margin-bottom: 10px;">Only counts when tab is active.</p>
+              <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-subtle); padding: 8px 12px; border-radius: var(--radius-sm);">
+                <span style="font-size: 12px; color: var(--text-muted);">Daily Quota:</span>
+                <span style="font-family: var(--font-mono); font-weight: 700;">30 minutes</span>
+              </div>
+            </div>
+            <button class="widget-action-btn btn-start" type="button">Set Daily Limit</button>
+          </div>
+
+          <!-- TAB 4: INSIGHTS VIEW -->
+          <div id="widgetModeInsights" class="widget-mode-view" style="display: none; width: 100%;">
+            <div style="background: var(--bg-surface-elevated); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 14px; margin-bottom: 14px; width: 100%;">
+              <div style="display: flex; justify-content: space-between; font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px;">
+                <span>Total This Week: <strong>5h 39m</strong></span>
+                <span>Avg: <strong>48m/d</strong></span>
+              </div>
+              <!-- Mini 7-day bar chart -->
+              <div style="display: flex; align-items: flex-end; justify-content: space-between; height: 50px; padding: 0 4px; gap: 6px;">
+                <div style="flex: 1; height: 15%; background: var(--border); border-radius: 3px;"></div>
+                <div style="flex: 1; height: 20%; background: var(--border); border-radius: 3px;"></div>
+                <div style="flex: 1; height: 18%; background: var(--border); border-radius: 3px;"></div>
+                <div style="flex: 1; height: 45%; background: var(--border); border-radius: 3px;"></div>
+                <div style="flex: 1; height: 25%; background: var(--border); border-radius: 3px;"></div>
+                <div style="flex: 1; height: 15%; background: var(--border); border-radius: 3px;"></div>
+                <div style="flex: 1; height: 95%; background: var(--text-main); border-radius: 3px;"></div>
+              </div>
+              <div style="display: flex; justify-content: space-between; font-size: 9.5px; color: var(--text-faint); margin-top: 6px;">
+                <span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span><strong style="color: var(--text-main);">Mon</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Trigger Break Screen Simulator -->
+        <button id="triggerBreakSimBtn" class="btn-trigger-simulator" type="button">
+          <span>🧘</span>
+          <span>Simulate Mindful Break Screen</span>
+          <span style="opacity: 0.5;">→</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Bento Grid Showcase Section -->
+    <section class="section-wrapper" id="features">
+      <div class="section-header scroll-reveal">
+        <span class="section-tag">Anti-Slop Craftsmanship</span>
+        <h2 class="section-title">Everything you need. Nothing you don't.</h2>
+        <p class="section-desc">
+          Zentime replaces noisy, subscription-gated blocker extensions with a clean, local-first utility designed around the human attention span.
+        </p>
+      </div>
+
+      <div class="bento-grid">
+        <!-- Card 1: Precision Focus Countdown -->
+        <div class="bento-card bento-col-8 scroll-reveal">
+          <div class="bento-card-top">
+            <span class="bento-badge">⏱️ Mode 1 • Manual Timers</span>
+            <h3 class="bento-title">Targeted Focus Timers with 3 Visual Styles</h3>
+            <p class="bento-desc">
+              Choose between an SVG Ring, a Linear Bar, or pure Minimal digits. Set quick presets for 15, 25, 45, or 60 minutes with per-second local accuracy.
+            </p>
+          </div>
+          <div class="bento-visual">
+            <img src="assets/preview-timer.png" alt="Zentime Active Countdown Preview" loading="lazy">
+          </div>
+        </div>
+
+        <!-- Card 2: Pomodoro Cycles -->
+        <div class="bento-card bento-col-4 scroll-reveal">
+          <div class="bento-card-top">
+            <span class="bento-badge">🍅 Mode 2 • Pomodoro</span>
+            <h3 class="bento-title">4-Cycle Structured Workflow</h3>
+            <p class="bento-desc">
+              Classic 25/5m, Deep Work 50/10m, or Sprint 15/3m sessions with automatic 15-minute long breaks after 4 completed cycles.
+            </p>
+          </div>
+          <div class="bento-visual">
+            <img src="assets/preview-pomodoro.png" alt="Zentime Pomodoro Preview" loading="lazy">
+          </div>
+        </div>
+
+        <!-- Card 3: Daily Quotas & Light Theme -->
+        <div class="bento-card bento-col-4 scroll-reveal">
+          <div class="bento-card-top">
+            <span class="bento-badge">🛑 Mode 3 • Screen Time Limits</span>
+            <h3 class="bento-title">Active-Tab Quotas & Dual Theme</h3>
+            <p class="bento-desc">
+              Only counts active browsing time and pauses immediately when you switch tabs. Seamlessly renders in crisp Matte Light Mode.
+            </p>
+          </div>
+          <div class="bento-visual">
+            <img src="assets/preview-limits-light.png" alt="Zentime Limits in Light Mode Preview" loading="lazy">
+          </div>
+        </div>
+
+        <!-- Card 4: Screen Time Analytics -->
+        <div class="bento-card bento-col-8 scroll-reveal">
+          <div class="bento-card-top">
+            <span class="bento-badge">📊 Mode 4 • Local Analytics</span>
+            <h3 class="bento-title">7-Day Activity & Interactive Day Drilldown</h3>
+            <p class="bento-desc">
+              High-contrast CSS/SVG bar chart showing your 7-day usage. Click on any individual day to filter top visited websites for that date. All stored locally on your machine.
+            </p>
+          </div>
+          <div class="bento-visual">
+            <img src="assets/preview-insights.png" alt="Zentime Insights Analytics Preview" loading="lazy">
+          </div>
+        </div>
+
+        <!-- Card 5: Audio Chime -->
+        <div class="bento-card bento-col-6 scroll-reveal">
+          <div class="bento-card-top">
+            <span class="bento-badge">🔔 Web Audio API</span>
+            <h3 class="bento-title">10-Second Harmonic Singing Bowl Chime</h3>
+            <p class="bento-desc">
+              Synthesized pure C-Major pentatonic chords via Web Audio API. Zero external audio MP3 files, soft exponential attack, and soothing tranquil release.
+            </p>
+          </div>
+          <div class="audio-preview-box">
+            <div class="chime-waves">
+              <span class="wave-bar"></span>
+              <span class="wave-bar"></span>
+              <span class="wave-bar"></span>
+              <span class="wave-bar"></span>
+              <span class="wave-bar"></span>
+            </div>
+            <button id="playChimeBtn" class="chime-btn" type="button">
+              🔔 Play 10s Harmonic Bell
+            </button>
+          </div>
+        </div>
+
+        <!-- Card 6: Zero Telemetry Guarantee -->
+        <div class="bento-card bento-col-6 scroll-reveal">
+          <div class="bento-card-top">
+            <span class="bento-badge">🔒 Privacy Guarantee</span>
+            <h3 class="bento-title">100% Offline by Design</h3>
+            <p class="bento-desc">
+              Zentime makes zero network requests. No user accounts, no cloud database, no tracking pixels, and no data sales. Everything lives inside your browser's private local storage.
+            </p>
+          </div>
+          <div style="background: var(--bg-surface-elevated); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 18px; display: flex; align-items: center; justify-content: space-around; text-align: center;">
+            <div>
+              <div style="font-size: 20px; font-weight: 800; color: var(--accent-green);">0</div>
+              <div style="font-size: 11.5px; color: var(--text-faint);">Cloud Requests</div>
+            </div>
+            <div style="width: 1px; height: 32px; background: var(--border);"></div>
+            <div>
+              <div style="font-size: 20px; font-weight: 800; color: var(--accent-green);">100%</div>
+              <div style="font-size: 11.5px; color: var(--text-faint);">Offline Local</div>
+            </div>
+            <div style="width: 1px; height: 32px; background: var(--border);"></div>
+            <div>
+              <div style="font-size: 20px; font-weight: 800; color: var(--accent-green);">0 MB</div>
+              <div style="font-size: 11.5px; color: var(--text-faint);">Telemetry Overhead</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Comparison & Privacy Section -->
+    <section class="section-wrapper" id="privacy">
+      <div class="section-header scroll-reveal">
+        <span class="section-tag">Uncompromising Privacy</span>
+        <h2 class="section-title">How Zentime compares to typical blockers</h2>
+        <p class="section-desc">
+          Most extensions sell your browsing history or force paid monthly subscriptions. Zentime is open-source and free forever.
+        </p>
+      </div>
+
+      <div class="privacy-table-card scroll-reveal">
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th>Typical Productivity Extensions</th>
+              <th>Zentime ⏳</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Local Data Storage</strong></td>
+              <td>Sends logs to remote servers</td>
+              <td><span class="badge-yes">✓ 100% On-Device</span></td>
+            </tr>
+            <tr>
+              <td><strong>External Tracking / Analytics</strong></td>
+              <td>Google Analytics, Mixpanel, Sentry</td>
+              <td><span class="badge-yes">✓ Zero Network Calls</span></td>
+            </tr>
+            <tr>
+              <td><strong>Account Requirement</strong></td>
+              <td>Requires email or Google sign-in</td>
+              <td><span class="badge-yes">✓ No Account Needed</span></td>
+            </tr>
+            <tr>
+              <td><strong>Manifest V3 Compliance</strong></td>
+              <td>Legacy MV2 or heavy service workers</td>
+              <td><span class="badge-yes">✓ Strict Manifest V3</span></td>
+            </tr>
+            <tr>
+              <td><strong>Pricing Model</strong></td>
+              <td>$5 - $12 / month subscription</td>
+              <td><span class="badge-yes">✓ 100% Free & Open Source (MIT)</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 3-Step Installation Section -->
+    <section class="section-wrapper" id="download">
+      <div class="section-header scroll-reveal">
+        <span class="section-tag">Quick Start</span>
+        <h2 class="section-title">Get started in 30 seconds</h2>
+        <p class="section-desc">
+          Since Zentime is an open-source unpacked extension, you can install it in Google Chrome in 3 simple steps:
+        </p>
+      </div>
+
+      <div class="steps-grid scroll-reveal">
+        <!-- Step 1 -->
+        <div class="step-card">
+          <div class="step-num">1</div>
+          <h3 class="step-title">Download ZIP Bundle</h3>
+          <p class="step-desc">
+            Get the pre-built, production-ready distribution archive directly from GitHub Releases.
+          </p>
+          <a href="https://github.com/arkhabw/Zentime/releases/download/v1.0.0/zentime-v1.0.0.zip" class="btn-primary" style="padding: 10px 16px; font-size: 13.5px; justify-content: center;">
+            Download v1.0.0 (104 KB)
+          </a>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="step-card">
+          <div class="step-num">2</div>
+          <h3 class="step-title">Enable Developer Mode</h3>
+          <p class="step-desc">
+            Open Chrome's extension manager and toggle the Developer Mode switch in the top-right corner.
+          </p>
+          <div class="code-box">
+            <span>chrome://extensions/</span>
+            <button id="copyExtPathBtn" class="btn-copy" type="button">Copy</button>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="step-card">
+          <div class="step-num">3</div>
+          <h3 class="step-title">Load Unpacked</h3>
+          <p class="step-desc">
+            Extract the ZIP, click <strong>Load unpacked</strong>, and select the unzipped directory. Pin Zentime to your toolbar!
+          </p>
+          <a href="https://github.com/arkhabw/Zentime#installation-developer-mode" target="_blank" rel="noopener" class="btn-secondary" style="padding: 10px 16px; font-size: 13.5px; justify-content: center;">
+            View Detailed Guide →
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Interactive Mindful Break Modal (Simulator) -->
+  <div class="modal-overlay" id="breakModalOverlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="break-card">
+      <div class="breathe-wrapper">
+        <div class="breathe-pulse"></div>
+        <div class="breathe-core">
+          <img src="icons/icon48.png" alt="" width="26" height="26">
+        </div>
+      </div>
+
+      <div class="break-site-badge">
+        <span class="break-domain">github.com</span>
+        <span class="break-status-tag">Focus Session Ended</span>
+      </div>
+
+      <h2 class="break-title" id="modalTitle">Time for a Mindful Break</h2>
+      <p class="break-desc">
+        Your focus session for <strong>github.com</strong> has ended. Take a moment to step back and recharge.
+      </p>
+
+      <div class="break-stats-row">
+        <div class="break-stat-col">
+          <span class="stat-label">Used Today</span>
+          <span class="stat-number">25m 00s</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="break-stat-col">
+          <span class="stat-label">Session Status</span>
+          <span class="stat-number" style="color: var(--accent-green);">Finished</span>
+        </div>
+      </div>
+
+      <div class="break-actions">
+        <button class="btn-break-continue js-close-modal" type="button">
+          Continue to Website
+        </button>
+        <button class="btn-break-subtle js-close-modal" type="button">
+          +5m Extra Focus
+        </button>
+        <button class="btn-break-subtle js-close-modal" type="button">
+          Close This Tab
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-left">
+      <img src="icons/icon16.png" alt="" width="16" height="16">
+      <span class="footer-text">
+        Crafted with care by <a href="https://github.com/arkhabw" target="_blank" rel="noopener">@arkhabw</a>. Released under the <a href="https://github.com/arkhabw/Zentime/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a>.
+      </span>
+    </div>
+
+    <ul class="footer-links">
+      <li><a href="https://github.com/arkhabw/Zentime" target="_blank" rel="noopener">GitHub</a></li>
+      <li><a href="https://github.com/arkhabw/Zentime/releases/tag/v1.0.0" target="_blank" rel="noopener">Releases</a></li>
+      <li><a href="https://github.com/arkhabw/Zentime/blob/main/PRIVACY_POLICY.md" target="_blank" rel="noopener">Privacy</a></li>
+    </ul>
+  </footer>
+
+  <script src="landing.js"></script>
+</body>
+</html>
