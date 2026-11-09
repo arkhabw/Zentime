@@ -1631,7 +1631,7 @@ function renderMode4Insights() {
           li.innerHTML = `
             <div class="top-site-meta">
               <div class="top-site-info">
-                <img class="top-site-favicon" src="${faviconUrl}" alt="" onerror="this.src='icons/icon16.png'">
+                <img class="top-site-favicon" src="${faviconUrl}" alt="">
                 <span class="top-site-domain" title="${site.domain}">${site.domain}</span>
               </div>
               <div class="top-site-stats">
@@ -1643,6 +1643,14 @@ function renderMode4Insights() {
               <div class="top-site-fill" style="width: ${site.percentOfTotal}%;"></div>
             </div>
           `;
+
+          const faviconImg = li.querySelector(".top-site-favicon");
+          if (faviconImg) {
+            faviconImg.addEventListener("error", () => {
+              faviconImg.src = "icons/icon16.png";
+            });
+          }
+
           insightsSitesList.appendChild(li);
         });
       } else {
