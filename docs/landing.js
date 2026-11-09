@@ -195,6 +195,9 @@
   });
 
   // Switch Style Button (Ring -> Bar -> Minimal)
+  const heroTimerCard = document.getElementById("heroTimerCard");
+  const heroRingSvg = document.getElementById("heroRingSvg");
+
   if (switchStyleBtn) {
     switchStyleBtn.addEventListener("click", () => {
       const nextIdx = (STYLES.indexOf(activeStyle) + 1) % STYLES.length;
@@ -207,20 +210,46 @@
     const ringWrapper = document.getElementById("heroRingWrapper");
     if (!ringWrapper) return;
 
+    if (heroTimerCard) {
+      heroTimerCard.setAttribute("data-timer-style", style);
+    }
+
     if (style === "ring") {
+      if (heroRingSvg) heroRingSvg.style.display = "block";
+      if (linearBarEl) linearBarEl.style.display = "none";
       ringWrapper.style.display = "flex";
-      if (linearBarEl) linearBarEl.style.display = "none";
-      countdownDigitsEl.style.position = "absolute";
+      ringWrapper.style.width = "150px";
+      ringWrapper.style.height = "150px";
+      ringWrapper.style.margin = "4px auto 10px";
+      if (countdownDigitsEl) {
+        countdownDigitsEl.style.position = "relative";
+        countdownDigitsEl.style.fontSize = "36px";
+        countdownDigitsEl.style.marginBottom = "0";
+      }
     } else if (style === "bar") {
-      ringWrapper.style.display = "none";
+      if (heroRingSvg) heroRingSvg.style.display = "none";
       if (linearBarEl) linearBarEl.style.display = "block";
-      countdownDigitsEl.style.position = "static";
-      countdownDigitsEl.style.marginBottom = "14px";
+      ringWrapper.style.display = "block";
+      ringWrapper.style.width = "100%";
+      ringWrapper.style.height = "auto";
+      ringWrapper.style.margin = "6px 0 0";
+      if (countdownDigitsEl) {
+        countdownDigitsEl.style.position = "static";
+        countdownDigitsEl.style.fontSize = "42px";
+        countdownDigitsEl.style.marginBottom = "6px";
+      }
     } else if (style === "minimal") {
-      ringWrapper.style.display = "none";
+      if (heroRingSvg) heroRingSvg.style.display = "none";
       if (linearBarEl) linearBarEl.style.display = "none";
-      countdownDigitsEl.style.position = "static";
-      countdownDigitsEl.style.marginBottom = "8px";
+      ringWrapper.style.display = "block";
+      ringWrapper.style.width = "100%";
+      ringWrapper.style.height = "auto";
+      ringWrapper.style.margin = "10px 0 6px";
+      if (countdownDigitsEl) {
+        countdownDigitsEl.style.position = "static";
+        countdownDigitsEl.style.fontSize = "48px";
+        countdownDigitsEl.style.marginBottom = "6px";
+      }
     }
   }
 
@@ -238,6 +267,203 @@
       });
     });
   });
+
+  // -------------------------------------------------------------
+  // 4B. Interactive Simulator Mode 4: 7-Day Insights Drilldown
+  // -------------------------------------------------------------
+  const DUMMY_INSIGHTS = {
+    all: {
+      label: "TOTAL THIS WEEK",
+      total: "5h 39m",
+      sub: "Total active browser screen time",
+      title: "Top Sites This Week",
+      sites: [
+        { domain: "www.google.com", time: "2h 40m", pct: 47, color: "#4285F4", icon: "G" },
+        { domain: "www.netflix.com", time: "1h 15m", pct: 22, color: "#E50914", icon: "N" },
+        { domain: "www.youtube.com", time: "55m", pct: 16, color: "#FF0000", icon: "▶" },
+        { domain: "github.com", time: "35m", pct: 10, color: "#24292F", icon: "GH" },
+        { domain: "chatgpt.com", time: "14m", pct: 5, color: "#10A37F", icon: "AI" }
+      ]
+    },
+    days: [
+      {
+        id: "tue",
+        name: "Tue",
+        height: 15,
+        total: "15m",
+        sites: [
+          { domain: "github.com", time: "15m", pct: 100, color: "#24292F", icon: "GH" }
+        ]
+      },
+      {
+        id: "wed",
+        name: "Wed",
+        height: 25,
+        total: "25m",
+        sites: [
+          { domain: "www.google.com", time: "15m", pct: 60, color: "#4285F4", icon: "G" },
+          { domain: "github.com", time: "10m", pct: 40, color: "#24292F", icon: "GH" }
+        ]
+      },
+      {
+        id: "thu",
+        name: "Thu",
+        height: 20,
+        total: "20m",
+        sites: [
+          { domain: "github.com", time: "20m", pct: 100, color: "#24292F", icon: "GH" }
+        ]
+      },
+      {
+        id: "fri",
+        name: "Fri",
+        height: 52,
+        total: "1h 10m",
+        sites: [
+          { domain: "github.com", time: "45m", pct: 64, color: "#24292F", icon: "GH" },
+          { domain: "www.google.com", time: "25m", pct: 36, color: "#4285F4", icon: "G" }
+        ]
+      },
+      {
+        id: "sat",
+        name: "Sat",
+        height: 32,
+        total: "35m",
+        sites: [
+          { domain: "www.youtube.com", time: "25m", pct: 71, color: "#FF0000", icon: "▶" },
+          { domain: "www.netflix.com", time: "10m", pct: 29, color: "#E50914", icon: "N" }
+        ]
+      },
+      {
+        id: "sun",
+        name: "Sun",
+        height: 20,
+        total: "20m",
+        sites: [
+          { domain: "chatgpt.com", time: "15m", pct: 75, color: "#10A37F", icon: "AI" },
+          { domain: "www.google.com", time: "5m", pct: 25, color: "#4285F4", icon: "G" }
+        ]
+      },
+      {
+        id: "mon",
+        name: "Mon",
+        height: 95,
+        total: "3h 40m",
+        isPeak: true,
+        sites: [
+          { domain: "www.netflix.com", time: "1h 45m", pct: 48, color: "#E50914", icon: "N" },
+          { domain: "www.google.com", time: "1h 05m", pct: 30, color: "#4285F4", icon: "G" },
+          { domain: "www.youtube.com", time: "50m", pct: 22, color: "#FF0000", icon: "▶" }
+        ]
+      }
+    ]
+  };
+
+  const simChartBarsEl = document.getElementById("simChartBars");
+  const simSitesListEl = document.getElementById("simSitesList");
+  const simTotalLabelEl = document.getElementById("simTotalLabel");
+  const simTotalValEl = document.getElementById("simTotalVal");
+  const simTotalSubEl = document.getElementById("simTotalSub");
+  const simSitesTitleEl = document.getElementById("simSitesTitle");
+  const simSitesCountEl = document.getElementById("simSitesCount");
+  const simResetWeekBtn = document.getElementById("simResetWeekBtn");
+
+  let selectedDayId = null;
+
+  function renderSimSites(sites) {
+    if (!simSitesListEl) return;
+    simSitesListEl.innerHTML = "";
+    sites.forEach((site) => {
+      const li = document.createElement("li");
+      li.className = "sim-site-item";
+      li.innerHTML = `
+        <div class="sim-site-info">
+          <div class="sim-site-left">
+            <span class="sim-site-badge" style="background: ${site.color};">${site.icon}</span>
+            <span class="sim-site-domain">${site.domain}</span>
+          </div>
+          <div class="sim-site-meta">
+            <span class="sim-site-time">${site.time}</span>
+            <span class="sim-site-pct">${site.pct}%</span>
+          </div>
+        </div>
+        <div class="sim-site-track">
+          <div class="sim-site-fill" style="width: ${site.pct}%;"></div>
+        </div>
+      `;
+      simSitesListEl.appendChild(li);
+    });
+  }
+
+  function renderSimInsights() {
+    if (!simChartBarsEl) return;
+    simChartBarsEl.innerHTML = "";
+
+    const isFiltered = Boolean(selectedDayId);
+    if (isFiltered) {
+      simChartBarsEl.classList.add("has-selection");
+      if (simResetWeekBtn) simResetWeekBtn.classList.add("is-filtered");
+    } else {
+      simChartBarsEl.classList.remove("has-selection");
+      if (simResetWeekBtn) simResetWeekBtn.classList.remove("is-filtered");
+    }
+
+    DUMMY_INSIGHTS.days.forEach((day) => {
+      const col = document.createElement("div");
+      col.className = `sim-bar-col${day.isPeak ? " is-peak" : ""}${selectedDayId === day.id ? " selected" : ""}`;
+      col.setAttribute("title", `${day.name}: ${day.total} (Click to filter)`);
+      col.innerHTML = `
+        <div class="sim-bar-track">
+          <div class="sim-bar-fill" style="height: ${day.height}%;"></div>
+        </div>
+        <span class="sim-bar-day">${day.name}</span>
+      `;
+
+      col.addEventListener("click", () => {
+        if (selectedDayId === day.id) {
+          selectedDayId = null;
+        } else {
+          selectedDayId = day.id;
+        }
+        applySimSelection();
+      });
+
+      simChartBarsEl.appendChild(col);
+    });
+  }
+
+  function applySimSelection() {
+    if (selectedDayId) {
+      const dayData = DUMMY_INSIGHTS.days.find((d) => d.id === selectedDayId);
+      if (dayData) {
+        if (simTotalLabelEl) simTotalLabelEl.textContent = `TOTAL FOR ${dayData.name.toUpperCase()}`;
+        if (simTotalValEl) simTotalValEl.textContent = dayData.total;
+        if (simTotalSubEl) simTotalSubEl.textContent = `Daily usage breakdown for ${dayData.name}`;
+        if (simSitesTitleEl) simSitesTitleEl.textContent = `Top Sites for ${dayData.name}`;
+        if (simSitesCountEl) simSitesCountEl.textContent = dayData.sites.length;
+        renderSimSites(dayData.sites);
+      }
+    } else {
+      const allData = DUMMY_INSIGHTS.all;
+      if (simTotalLabelEl) simTotalLabelEl.textContent = allData.label;
+      if (simTotalValEl) simTotalValEl.textContent = allData.total;
+      if (simTotalSubEl) simTotalSubEl.textContent = allData.sub;
+      if (simSitesTitleEl) simSitesTitleEl.textContent = allData.title;
+      if (simSitesCountEl) simSitesCountEl.textContent = allData.sites.length;
+      renderSimSites(allData.sites);
+    }
+    renderSimInsights();
+  }
+
+  if (simResetWeekBtn) {
+    simResetWeekBtn.addEventListener("click", () => {
+      selectedDayId = null;
+      applySimSelection();
+    });
+  }
+
+  // Initial render of Insights
+  applySimSelection();
 
   // Initial timer tick
   updateTimerDisplay();

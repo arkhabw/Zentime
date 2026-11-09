@@ -13,7 +13,7 @@
 @font-face {
   font-family: "JetBrains Mono";
   src: url("fonts/JetBrainsMono-Variable.woff2") format("woff2");
-  font-weight: 400 800;
+  font-weight: 100 800;
   font-display: swap;
 }
 
@@ -89,6 +89,10 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+}
+
+button, input, select, textarea {
+  font-family: inherit;
 }
 
 html {
@@ -581,14 +585,21 @@ body {
 
 .widget-frame {
   width: 100%;
-  max-width: 380px;
+  max-width: 350px;
   background: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 20px;
+  padding: 16px;
   box-shadow: var(--shadow-lg);
   position: relative;
   transition: transform 0.25s var(--ease-spring), box-shadow 0.25s ease;
+  font-family: var(--font-sans);
+  user-select: none;
+}
+
+.widget-frame button,
+.widget-frame input {
+  font-family: inherit;
 }
 
 .widget-frame:hover {
@@ -601,17 +612,18 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
 .widget-brand {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
   letter-spacing: -0.02em;
 }
 
 .widget-brand span {
-  font-weight: 400;
+  font-weight: 500;
+  font-size: 12px;
   color: var(--text-faint);
 }
 
@@ -627,7 +639,7 @@ body {
   border-radius: var(--radius-full);
   padding: 3px 8px;
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-muted);
 }
 
@@ -638,11 +650,11 @@ body {
   justify-content: space-between;
   background: var(--bg-surface-elevated);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: 10px 14px;
-  margin-bottom: 14px;
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  margin-bottom: 12px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .domain-left {
@@ -704,18 +716,19 @@ body {
   justify-content: center;
 }
 
-/* Ring Timer View */
+/* Ring / Bar / Minimal Morphing Timer View */
 .ring-timer-card {
   width: 100%;
   background: var(--bg-surface-elevated);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  padding: 20px 16px;
+  padding: 16px 14px;
   display: flex;
   flex-direction: column;
   align-items: center;
   position: relative;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
+  transition: all 0.25s var(--ease-spring);
 }
 
 .ring-card-header {
@@ -723,13 +736,13 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .ring-card-tag {
-  font-size: 11px;
+  font-size: 11.5px;
   color: var(--text-muted);
-  font-weight: 500;
+  font-weight: 600;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -744,27 +757,127 @@ body {
   cursor: pointer;
   display: flex;
   align-items: center;
+  transition: all 0.15s ease;
 }
 
 .ring-style-btn:hover {
   color: var(--text-main);
   border-color: var(--border-strong);
+  background: var(--bg-subtle);
 }
 
-.svg-ring-wrapper {
+.hero-timer-display {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Style Mode 1: Ring */
+.ring-timer-card[data-timer-style="ring"] .svg-ring-wrapper {
   position: relative;
   width: 150px;
   height: 150px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 10px;
+  margin: 4px auto 10px;
 }
 
-.svg-ring {
+.ring-timer-card[data-timer-style="ring"] .svg-ring {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   transform: rotate(-90deg);
+  display: block;
+}
+
+.ring-timer-card[data-timer-style="ring"] .ring-countdown-digits {
+  position: relative;
+  z-index: 2;
+  font-family: var(--font-mono) !important;
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.ring-timer-card[data-timer-style="ring"] .hero-linear-bar {
+  display: none !important;
+}
+
+/* Style Mode 2: Linear Bar */
+.ring-timer-card[data-timer-style="bar"] .svg-ring-wrapper {
+  width: 100%;
+  height: auto;
+  margin: 6px 0 0;
+  display: block;
+  text-align: center;
+}
+
+.ring-timer-card[data-timer-style="bar"] .svg-ring {
+  display: none !important;
+}
+
+.ring-timer-card[data-timer-style="bar"] .ring-countdown-digits {
+  position: static;
+  font-family: var(--font-mono) !important;
+  font-size: 42px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.ring-timer-card[data-timer-style="bar"] .hero-linear-bar {
+  display: block !important;
+  width: 100%;
+  height: 6px;
+  background: var(--border);
+  border-radius: 99px;
+  overflow: hidden;
+  margin: 8px 0 10px;
+}
+
+.hero-linear-fill {
+  height: 100%;
+  width: 75%;
+  background: var(--text-main);
+  border-radius: 99px;
+  transition: width 0.4s ease;
+}
+
+/* Style Mode 3: Minimal */
+.ring-timer-card[data-timer-style="minimal"] .svg-ring-wrapper {
+  width: 100%;
+  height: auto;
+  margin: 10px 0 6px;
+  display: block;
+  text-align: center;
+}
+
+.ring-timer-card[data-timer-style="minimal"] .svg-ring {
+  display: none !important;
+}
+
+.ring-timer-card[data-timer-style="minimal"] .hero-linear-bar {
+  display: none !important;
+}
+
+.ring-timer-card[data-timer-style="minimal"] .ring-countdown-digits {
+  position: static;
+  font-family: var(--font-mono) !important;
+  font-size: 48px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  margin-bottom: 6px;
 }
 
 .ring-track {
@@ -783,17 +896,11 @@ body {
   transition: stroke-dashoffset 0.8s ease;
 }
 
-.ring-countdown-digits {
-  position: absolute;
-  font-family: var(--font-mono);
-  font-size: 30px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-}
-
 .ring-target-text {
-  font-size: 11px;
+  font-size: 11.5px;
   color: var(--text-muted);
+  font-weight: 500;
+  margin-top: 4px;
 }
 
 /* Presets & Actions */
@@ -806,9 +913,9 @@ body {
 }
 
 .preset-chip {
-  padding: 7px 0;
+  padding: 8px 0;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   border: 1px solid var(--border);
   background: var(--bg-surface-elevated);
   color: var(--text-muted);
@@ -819,17 +926,17 @@ body {
 
 .preset-chip:hover,
 .preset-chip.active {
-  background: var(--bg-subtle);
-  color: var(--text-main);
-  border-color: var(--border-strong);
+  background: var(--text-main);
+  color: var(--text-inverse);
+  border-color: var(--text-main);
 }
 
 .widget-action-btn {
   width: 100%;
   padding: 10px 0;
   font-size: 13.5px;
-  font-weight: 600;
-  border-radius: var(--radius-md);
+  font-weight: 700;
+  border-radius: var(--radius-sm);
   border: none;
   cursor: pointer;
   transition: opacity 0.15s ease, transform 0.1s ease;
@@ -848,6 +955,285 @@ body {
 .widget-action-btn.btn-start {
   background: var(--brand);
   color: var(--text-inverse);
+}
+
+/* -------------------------------------------------------------
+   Simulator Mode 4: Interactive 7-Day Screen Time Insights
+   ------------------------------------------------------------- */
+.sim-metrics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 10px;
+  width: 100%;
+}
+
+.sim-metric-card {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+}
+
+.sim-metric-card.sim-metric-full {
+  grid-column: span 2;
+}
+
+.sim-metric-lbl {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.sim-metric-val {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: -0.02em;
+}
+
+.sim-metric-sub {
+  font-size: 10.5px;
+  color: var(--text-faint);
+}
+
+.sim-chart-card {
+  width: 100%;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  margin-bottom: 10px;
+}
+
+.sim-chart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.sim-chart-title {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.sim-chart-badge {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  padding: 2px 7px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.sim-chart-badge.is-filtered {
+  background: var(--text-main);
+  color: var(--text-inverse);
+  border-color: var(--text-main);
+}
+
+.sim-chart-bars {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  height: 64px;
+  gap: 5px;
+  padding: 0 2px;
+}
+
+.sim-bar-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: opacity 0.2s ease, transform 0.15s ease;
+}
+
+.sim-bar-col:hover {
+  transform: translateY(-2px);
+}
+
+.sim-chart-bars.has-selection .sim-bar-col {
+  opacity: 0.35;
+}
+
+.sim-chart-bars.has-selection .sim-bar-col.selected {
+  opacity: 1;
+  transform: translateY(-2px);
+}
+
+.sim-bar-track {
+  width: 100%;
+  max-width: 20px;
+  height: 46px;
+  background: var(--border);
+  border-radius: 3px;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+
+.sim-bar-fill {
+  width: 100%;
+  background: var(--text-muted);
+  border-radius: 3px;
+  transition: height 0.3s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease;
+}
+
+.sim-bar-col.is-peak .sim-bar-fill,
+.sim-bar-col.selected .sim-bar-fill {
+  background: var(--text-main);
+}
+
+.sim-bar-day {
+  font-size: 9.5px;
+  color: var(--text-faint);
+  font-weight: 600;
+}
+
+.sim-bar-col.selected .sim-bar-day,
+.sim-bar-col.is-peak .sim-bar-day {
+  color: var(--text-main);
+  font-weight: 700;
+}
+
+/* Top Monitored Sites Breakdown */
+.sim-sites-section {
+  width: 100%;
+  text-align: left;
+}
+
+.sim-sites-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.sim-sites-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.sim-sites-count {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border);
+  padding: 1px 6px;
+  border-radius: 4px;
+  color: var(--text-faint);
+}
+
+.sim-sites-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 100%;
+}
+
+.sim-site-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 7px 9px;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  transition: border-color 0.15s ease;
+}
+
+.sim-site-item:hover {
+  border-color: var(--border-strong);
+}
+
+.sim-site-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sim-site-left {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.sim-site-badge {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 800;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.sim-site-domain {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 160px;
+}
+
+.sim-site-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.sim-site-time {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 11px;
+  color: var(--text-main);
+}
+
+.sim-site-pct {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-faint);
+}
+
+.sim-site-track {
+  height: 3px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.sim-site-fill {
+  height: 100%;
+  background: var(--text-main);
+  border-radius: 2px;
+  transition: width 0.3s ease;
 }
 
 .btn-trigger-simulator {

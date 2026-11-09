@@ -205,10 +205,10 @@
 
           <!-- TAB 1: TIMER VIEW -->
           <div id="widgetModeTimer" class="widget-mode-view">
-            <div class="ring-timer-card">
+            <div class="ring-timer-card" id="heroTimerCard" data-timer-style="ring">
               <div class="ring-card-header">
                 <span class="ring-card-tag">● github.com</span>
-                <button id="heroSwitchStyleBtn" class="ring-style-btn" type="button" title="Switch Visual Style">
+                <button id="heroSwitchStyleBtn" class="ring-style-btn" type="button" title="Switch Visual Style (Ring / Bar / Minimal)" aria-label="Switch Visual Style">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <rect x="3" y="3" width="18" height="18" rx="4"></rect>
                     <line x1="3" y1="9" x2="21" y2="9"></line>
@@ -216,21 +216,23 @@
                 </button>
               </div>
 
-              <!-- Circular Ring -->
-              <div class="svg-ring-wrapper" id="heroRingWrapper">
-                <svg class="svg-ring" viewBox="0 0 160 160">
-                  <circle class="ring-track" cx="80" cy="80" r="72"></circle>
-                  <circle class="ring-fill" id="heroRingFill" cx="80" cy="80" r="72"></circle>
-                </svg>
-                <div class="ring-countdown-digits" id="heroCountdownDigits">24:57</div>
-              </div>
+              <!-- Morphing Timer Display Area -->
+              <div class="hero-timer-display">
+                <div class="svg-ring-wrapper" id="heroRingWrapper">
+                  <svg class="svg-ring" id="heroRingSvg" viewBox="0 0 160 160">
+                    <circle class="ring-track" cx="80" cy="80" r="72"></circle>
+                    <circle class="ring-fill" id="heroRingFill" cx="80" cy="80" r="72"></circle>
+                  </svg>
+                  <div class="ring-countdown-digits" id="heroCountdownDigits">24:57</div>
+                </div>
 
-              <!-- Linear Bar (Alternative Style) -->
-              <div id="heroLinearBar" style="display: none; width: 100%; height: 6px; background: var(--border); border-radius: 99px; margin-bottom: 12px; overflow: hidden;">
-                <div id="heroLinearFill" style="height: 100%; width: 75%; background: var(--text-main); border-radius: 99px;"></div>
-              </div>
+                <!-- Linear Progress Bar (shown in 'bar' style) -->
+                <div id="heroLinearBar" class="hero-linear-bar" style="display: none;">
+                  <div id="heroLinearFill" class="hero-linear-fill"></div>
+                </div>
 
-              <div class="ring-target-text">Target completion: 15:45</div>
+                <div class="ring-target-text" id="heroTargetText">Target completion: 15:45</div>
+              </div>
             </div>
 
             <!-- Presets -->
@@ -278,26 +280,45 @@
             <button class="widget-action-btn btn-start" type="button">Set Daily Limit</button>
           </div>
 
-          <!-- TAB 4: INSIGHTS VIEW -->
+          <!-- TAB 4: INSIGHTS VIEW (Interactive 7-Day Analytics) -->
           <div id="widgetModeInsights" class="widget-mode-view" style="display: none; width: 100%;">
-            <div style="background: var(--bg-surface-elevated); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 14px; margin-bottom: 14px; width: 100%;">
-              <div style="display: flex; justify-content: space-between; font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px;">
-                <span>Total This Week: <strong>5h 39m</strong></span>
-                <span>Avg: <strong>48m/d</strong></span>
+            <!-- 4A: Top Metrics Grid -->
+            <div class="sim-metrics-grid">
+              <div class="sim-metric-card sim-metric-full">
+                <span class="sim-metric-lbl" id="simTotalLabel">TOTAL THIS WEEK</span>
+                <div class="sim-metric-val" id="simTotalVal">5h 39m</div>
+                <span class="sim-metric-sub" id="simTotalSub">Total active browser screen time</span>
               </div>
-              <!-- Mini 7-day bar chart -->
-              <div style="display: flex; align-items: flex-end; justify-content: space-between; height: 50px; padding: 0 4px; gap: 6px;">
-                <div style="flex: 1; height: 15%; background: var(--border); border-radius: 3px;"></div>
-                <div style="flex: 1; height: 20%; background: var(--border); border-radius: 3px;"></div>
-                <div style="flex: 1; height: 18%; background: var(--border); border-radius: 3px;"></div>
-                <div style="flex: 1; height: 45%; background: var(--border); border-radius: 3px;"></div>
-                <div style="flex: 1; height: 25%; background: var(--border); border-radius: 3px;"></div>
-                <div style="flex: 1; height: 15%; background: var(--border); border-radius: 3px;"></div>
-                <div style="flex: 1; height: 95%; background: var(--text-main); border-radius: 3px;"></div>
+              <div class="sim-metric-card">
+                <span class="sim-metric-lbl" id="simAvgLabel">DAILY AVERAGE</span>
+                <div class="sim-metric-val" id="simAvgVal">48m / day</div>
               </div>
-              <div style="display: flex; justify-content: space-between; font-size: 9.5px; color: var(--text-faint); margin-top: 6px;">
-                <span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span><strong style="color: var(--text-main);">Mon</strong>
+              <div class="sim-metric-card">
+                <span class="sim-metric-lbl" id="simPeakLabel">MOST ACTIVE DAY</span>
+                <div class="sim-metric-val" id="simPeakVal">Mon (3h 40m)</div>
               </div>
+            </div>
+
+            <!-- 4B: 7-Day Vertical Bar Chart Card -->
+            <div class="sim-chart-card">
+              <div class="sim-chart-header">
+                <span class="sim-chart-title" id="simChartTitle">Last 7 Days Activity</span>
+                <button type="button" class="sim-chart-badge" id="simResetWeekBtn" title="Reset filter to full 7 days">7 Days</button>
+              </div>
+              <div class="sim-chart-bars" id="simChartBars">
+                <!-- Dynamically populated 7 bars (Tue - Mon) -->
+              </div>
+            </div>
+
+            <!-- 4C: Top Monitored Websites Breakdown -->
+            <div class="sim-sites-section">
+              <div class="sim-sites-header">
+                <span class="sim-sites-title" id="simSitesTitle">Top Sites This Week</span>
+                <span class="sim-sites-count" id="simSitesCount">5</span>
+              </div>
+              <ul class="sim-sites-list" id="simSitesList">
+                <!-- Dynamically populated top site rows -->
+              </ul>
             </div>
           </div>
         </div>
