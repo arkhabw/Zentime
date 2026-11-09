@@ -755,28 +755,38 @@ body {
   gap: 8px;
 }
 
+/* Tactile Layout Switcher Button */
 .style-toggle-btn {
-  background: transparent;
-  border: none;
-  color: var(--text-faint);
+  background: var(--bg-hover);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
   cursor: pointer;
-  padding: 4px;
+  padding: 4px 7px;
   border-radius: var(--radius-sm);
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  gap: 4px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .style-toggle-btn:hover {
   color: var(--text-main);
-  background: var(--bg-hover);
-  transform: rotate(45deg);
+  background: var(--bg-surface);
+  border-color: var(--text-muted);
+  transform: translateY(-1px);
+}
+
+.style-toggle-btn:active {
+  transform: scale(0.95);
+}
+
+.style-toggle-icon {
+  display: block;
 }
 
 /* Timer Display Area Container */
 .timer-display-area {
-  position: relative;
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -784,9 +794,24 @@ body {
   justify-content: center;
 }
 
-/* Circular SVG Ring Element */
+/* Ring Wrapper (Contains SVG Circle & Large Centered Digits) */
+.timer-ring-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 170px;
+  height: 170px;
+  margin: 0 auto;
+}
+
+/* SVG Ring Element */
 .timer-ring-svg {
-  display: none;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
 .timer-ring-track {
@@ -800,47 +825,41 @@ body {
   stroke: var(--fill-bar);
   stroke-width: 8;
   stroke-linecap: round;
-  stroke-dasharray: 427.26;
+  stroke-dasharray: 452.39;
   stroke-dashoffset: 0;
   transform: rotate(-90deg);
-  transform-origin: 80px 80px;
-  transition: stroke-dashoffset 0.35s ease, stroke 0.35s ease;
+  transform-origin: 85px 85px;
+  transition: stroke-dashoffset 0.35s cubic-bezier(0.16, 1, 0.3, 1), stroke 0.35s ease;
 }
 
 .timer-ring-fill.danger {
   stroke: var(--danger-text);
 }
 
-.timer-center-content {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  z-index: 2;
-}
-
 /* === STYLE MODE 1: RING (Lingkaran) === */
 .timer-card[data-timer-style="ring"] .timer-display-area {
-  height: 172px;
-  padding: 0;
+  padding: 4px 0 0;
+}
+
+.timer-card[data-timer-style="ring"] .timer-ring-wrapper {
+  display: flex;
+  width: 170px;
+  height: 170px;
+  margin: 4px auto 10px;
 }
 
 .timer-card[data-timer-style="ring"] .timer-ring-svg {
   display: block;
-  position: absolute;
-  top: 6px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 160px;
-  height: 160px;
 }
 
 .timer-card[data-timer-style="ring"] .timer-digits {
-  font-size: 34px;
-  margin-bottom: 2px;
+  font-size: 38px;
+  font-weight: 700;
+  line-height: 1;
   letter-spacing: -0.03em;
+  margin: 0;
+  position: relative;
+  z-index: 2;
 }
 
 .timer-card[data-timer-style="ring"] .timer-track {
@@ -848,14 +867,22 @@ body {
 }
 
 .timer-card[data-timer-style="ring"] .timer-meta {
-  font-size: 11px;
-  margin-top: 2px;
+  display: block;
+  font-size: 11.5px;
+  color: var(--text-muted);
+  margin-top: 0;
 }
 
 /* === STYLE MODE 2: BAR (Garis Horizontal) === */
 .timer-card[data-timer-style="bar"] .timer-display-area {
   padding: 6px 0 2px;
+}
+
+.timer-card[data-timer-style="bar"] .timer-ring-wrapper {
+  display: block;
+  width: 100%;
   height: auto;
+  margin: 4px 0 0;
 }
 
 .timer-card[data-timer-style="bar"] .timer-ring-svg {
@@ -865,16 +892,35 @@ body {
 .timer-card[data-timer-style="bar"] .timer-digits {
   font-size: 44px;
   margin-bottom: 14px;
+  line-height: 1;
 }
 
 .timer-card[data-timer-style="bar"] .timer-track {
   display: block;
+  width: 100%;
+  height: 6px;
+  background: var(--track-bg);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.timer-card[data-timer-style="bar"] .timer-meta {
+  display: block;
+  font-size: 11.5px;
+  color: var(--text-muted);
 }
 
 /* === STYLE MODE 3: MINIMAL (Angka Saja) === */
 .timer-card[data-timer-style="minimal"] .timer-display-area {
   padding: 14px 0 6px;
+}
+
+.timer-card[data-timer-style="minimal"] .timer-ring-wrapper {
+  display: block;
+  width: 100%;
   height: auto;
+  margin: 10px 0 0;
 }
 
 .timer-card[data-timer-style="minimal"] .timer-ring-svg {
@@ -886,14 +932,17 @@ body {
 }
 
 .timer-card[data-timer-style="minimal"] .timer-digits {
-  font-size: 50px;
+  font-size: 52px;
   font-weight: 800;
   margin-bottom: 8px;
   letter-spacing: -0.04em;
+  line-height: 1;
 }
 
 .timer-card[data-timer-style="minimal"] .timer-meta {
+  display: block;
   font-size: 12px;
+  color: var(--text-muted);
 }
 
 .timer-digits {

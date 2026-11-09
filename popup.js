@@ -1011,7 +1011,7 @@ function showActiveCountdownView(timer) {
       clearInterval(countdownInterval);
       countdownDisplay.textContent = "00:00";
       timerFillBar.style.width = "0%";
-      if (timerRingFill) timerRingFill.style.strokeDashoffset = "427.26px";
+      if (timerRingFill) timerRingFill.style.strokeDashoffset = "452.39px";
       refreshUI();
       return;
     }
@@ -1025,9 +1025,9 @@ function showActiveCountdownView(timer) {
     const percent = fraction * 100;
     timerFillBar.style.width = `${percent}%`;
 
-    // Update Ring Stroke
+    // Update Ring Stroke (circumference for r=72 is 452.39)
     if (timerRingFill) {
-      const circumference = 427.26;
+      const circumference = 452.39;
       const offset = circumference * (1 - fraction);
       timerRingFill.style.strokeDashoffset = `${offset}px`;
       if (percent <= 20) {
@@ -1288,7 +1288,7 @@ async function renderPomodoro() {
   pomoTimerFillBar.style.width = `${pct}%`;
 
   if (pomoRingFill) {
-    const circumference = 427.26;
+    const circumference = 452.39;
     const offset = circumference * (1 - fraction);
     pomoRingFill.style.strokeDashoffset = `${offset}px`;
   }
