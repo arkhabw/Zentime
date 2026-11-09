@@ -721,9 +721,179 @@ body {
   background: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 22px 16px;
+  padding: 16px 16px 20px;
   text-align: center;
   margin-bottom: 11px;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+/* Card Header with Active Domain Chip & Style Toggle */
+.timer-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.timer-card-chip {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--bg-hover);
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pomo-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.style-toggle-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-faint);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.style-toggle-btn:hover {
+  color: var(--text-main);
+  background: var(--bg-hover);
+  transform: rotate(45deg);
+}
+
+/* Timer Display Area Container */
+.timer-display-area {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Circular SVG Ring Element */
+.timer-ring-svg {
+  display: none;
+}
+
+.timer-ring-track {
+  fill: none;
+  stroke: var(--track-bg);
+  stroke-width: 8;
+}
+
+.timer-ring-fill {
+  fill: none;
+  stroke: var(--fill-bar);
+  stroke-width: 8;
+  stroke-linecap: round;
+  stroke-dasharray: 427.26;
+  stroke-dashoffset: 0;
+  transform: rotate(-90deg);
+  transform-origin: 80px 80px;
+  transition: stroke-dashoffset 0.35s ease, stroke 0.35s ease;
+}
+
+.timer-ring-fill.danger {
+  stroke: var(--danger-text);
+}
+
+.timer-center-content {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 2;
+}
+
+/* === STYLE MODE 1: RING (Lingkaran) === */
+.timer-card[data-timer-style="ring"] .timer-display-area {
+  height: 172px;
+  padding: 0;
+}
+
+.timer-card[data-timer-style="ring"] .timer-ring-svg {
+  display: block;
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 160px;
+  height: 160px;
+}
+
+.timer-card[data-timer-style="ring"] .timer-digits {
+  font-size: 34px;
+  margin-bottom: 2px;
+  letter-spacing: -0.03em;
+}
+
+.timer-card[data-timer-style="ring"] .timer-track {
+  display: none !important;
+}
+
+.timer-card[data-timer-style="ring"] .timer-meta {
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+/* === STYLE MODE 2: BAR (Garis Horizontal) === */
+.timer-card[data-timer-style="bar"] .timer-display-area {
+  padding: 6px 0 2px;
+  height: auto;
+}
+
+.timer-card[data-timer-style="bar"] .timer-ring-svg {
+  display: none !important;
+}
+
+.timer-card[data-timer-style="bar"] .timer-digits {
+  font-size: 44px;
+  margin-bottom: 14px;
+}
+
+.timer-card[data-timer-style="bar"] .timer-track {
+  display: block;
+}
+
+/* === STYLE MODE 3: MINIMAL (Angka Saja) === */
+.timer-card[data-timer-style="minimal"] .timer-display-area {
+  padding: 14px 0 6px;
+  height: auto;
+}
+
+.timer-card[data-timer-style="minimal"] .timer-ring-svg {
+  display: none !important;
+}
+
+.timer-card[data-timer-style="minimal"] .timer-track {
+  display: none !important;
+}
+
+.timer-card[data-timer-style="minimal"] .timer-digits {
+  font-size: 50px;
+  font-weight: 800;
+  margin-bottom: 8px;
+  letter-spacing: -0.04em;
+}
+
+.timer-card[data-timer-style="minimal"] .timer-meta {
+  font-size: 12px;
 }
 
 .timer-digits {
@@ -735,6 +905,7 @@ body {
   line-height: 1;
   font-variant-numeric: tabular-nums;
   margin-bottom: 14px;
+  transition: font-size 0.2s ease;
 }
 
 .timer-track {
@@ -762,6 +933,7 @@ body {
   font-size: 11.5px;
   color: var(--text-muted);
 }
+
 
 /* Sub-sections */
 .sub-section {
@@ -1501,6 +1673,80 @@ kbd {
   font-size: 11px;
   padding: 7px 10px;
 }
+
+/* Style Selector in Settings */
+.style-selector-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.style-choice-btn {
+  background: var(--bg-hover);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 10px 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.style-choice-btn:hover {
+  background: var(--bg-surface);
+  color: var(--text-main);
+  border-color: var(--text-muted);
+}
+
+.style-choice-btn.active {
+  background: var(--bg-surface);
+  color: var(--primary);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary);
+}
+
+.style-preview {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mini-bar-track {
+  width: 28px;
+  height: 5px;
+  background: currentColor;
+  opacity: 0.25;
+  border-radius: 9999px;
+  position: relative;
+  overflow: hidden;
+}
+
+.mini-bar-fill {
+  width: 65%;
+  height: 100%;
+  background: currentColor;
+  opacity: 1;
+  border-radius: 9999px;
+}
+
+.mini-digits {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.style-choice-name {
+  font-size: 10.5px;
+  font-weight: 600;
+}
+
 
 /* Toggle Switch Component (Apple Design) */
 .toggle-row {

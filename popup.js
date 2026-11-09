@@ -4,6 +4,7 @@ let currentDomain = "";
 let countdownInterval = null;
 let otherTimersInterval = null;
 let currentLang = "id";
+let currentTimerStyle = "ring";
 
 // -------------------------------------------------------------
 // Kamus Bahasa (i18n Dictionary)
@@ -88,6 +89,12 @@ const I18N = {
     langSliderTitle: "Ganti Bahasa (ID / EN)",
     settingsTitle: "Pengaturan",
     settingsAria: "Pengaturan",
+    timerStyleSection: "Gaya Tampilan Timer",
+    timerStyleDesc: "Pilih visualisasi progres timer saat berjalan.",
+    styleRing: "Lingkaran",
+    styleBar: "Garis",
+    styleMinimal: "Minimalis",
+    toggleStyleTitle: "Ganti tampilan timer (Lingkaran / Garis / Minimal)",
     shortcutsSection: "Pintasan Keyboard",
     shortcutsDesc: "Jalankan fitur Zentime langsung dari tombol keyboard.",
     shortcutOpenPopup: "Buka Popup Zentime",
@@ -179,6 +186,12 @@ const I18N = {
     langSliderTitle: "Switch Language (ID / EN)",
     settingsTitle: "Settings",
     settingsAria: "Settings",
+    timerStyleSection: "Timer Display Style",
+    timerStyleDesc: "Choose how active timer progress is visualized.",
+    styleRing: "Ring",
+    styleBar: "Bar",
+    styleMinimal: "Minimal",
+    toggleStyleTitle: "Switch timer display (Ring / Bar / Minimal)",
     shortcutsSection: "Keyboard Shortcuts",
     shortcutsDesc: "Trigger Zentime features directly from your keyboard.",
     shortcutOpenPopup: "Open Zentime Popup",
@@ -348,9 +361,13 @@ const stepPlusBtn = document.getElementById("stepPlusBtn");
 const startTimerBtn = document.getElementById("startTimerBtn");
 const cancelTimerBtn = document.getElementById("cancelTimerBtn");
 
+const timerCardManual = document.getElementById("timerCardManual");
 const countdownDisplay = document.getElementById("countdownDisplay");
 const timerFillBar = document.getElementById("timerFillBar");
+const timerRingFill = document.getElementById("timerRingFill");
 const finishTimeText = document.getElementById("finishTimeText");
+const toggleStyleBtnManual = document.getElementById("toggleStyleBtnManual");
+const activeTimerDomain = document.getElementById("activeTimerDomain");
 
 const otherTimersSection = document.getElementById("otherTimersSection");
 const otherTimersCount = document.getElementById("otherTimersCount");
@@ -359,6 +376,7 @@ const otherTimersList = document.getElementById("otherTimersList");
 // Mode Pomodoro Elements
 const pomoSetupView = document.getElementById("pomoSetupView");
 const pomoActiveView = document.getElementById("pomoActiveView");
+const timerCardPomo = document.getElementById("timerCardPomo");
 const pomoCycleLbl = document.getElementById("pomoCycleLbl");
 const pomoCycleDots = document.getElementById("pomoCycleDots");
 const pomoPresetBtns = document.querySelectorAll(".pomo-presets .preset-btn");
@@ -374,7 +392,9 @@ const pomoPhaseBadge = document.getElementById("pomoPhaseBadge");
 const pomoActiveCycleText = document.getElementById("pomoActiveCycleText");
 const pomoCountdownDisplay = document.getElementById("pomoCountdownDisplay");
 const pomoTimerFillBar = document.getElementById("pomoTimerFillBar");
+const pomoRingFill = document.getElementById("pomoRingFill");
 const pomoTargetText = document.getElementById("pomoTargetText");
+const toggleStyleBtnPomo = document.getElementById("toggleStyleBtnPomo");
 const skipPomoPhaseBtn = document.getElementById("skipPomoPhaseBtn");
 const cancelPomoBtn = document.getElementById("cancelPomoBtn");
 
@@ -423,8 +443,10 @@ let selectedInsightsDateKey = null; // null = 7 days weekly mode, or "YYYY-MM-DD
 document.addEventListener("DOMContentLoaded", async () => {
   await initLanguage();
   initTheme();
+  await initTimerStyle();
   setupTabs();
   setupSettingsControls();
+  setupTimerStyleControls();
   setupPresets();
   setupPomoControls();
   setupAutoModeControls();
@@ -527,12 +549,22 @@ function applyLanguage(lang, shouldRefresh = true) {
     }
   });
 
+  // Update elements with data-i18n-title
+  document.querySelectorAll("[data-i18n-title]").forEach((el) => {
+    const key = el.getAttribute("data-i18n-title");
+    if (key && I18N[lang]?.[key]) {
+      el.setAttribute("title", I18N[lang][key]);
+    }
+  });
+
   // Update aria-labels
   if (themeToggleBtn) themeToggleBtn.setAttribute("aria-label", t("themeAria"));
   if (settingsBtn) {
     settingsBtn.setAttribute("aria-label", t("settingsAria"));
     settingsBtn.setAttribute("title", t("settingsTitle"));
   }
+  if (toggleStyleBtnManual) toggleStyleBtnManual.setAttribute("title", t("toggleStyleTitle"));
+  if (toggleStyleBtnPomo) toggleStyleBtnPomo.setAttribute("title", t("toggleStyleTitle"));
   if (stepMinusBtn) stepMinusBtn.setAttribute("aria-label", t("stepMinusAria"));
   if (stepPlusBtn) stepPlusBtn.setAttribute("aria-label", t("stepPlusAria"));
 
@@ -721,6 +753,65 @@ function loadRegisteredShortcuts() {
 }
 
 // -------------------------------------------------------------
+// 3C. Timer Display Style (Ring / Bar / Minimal)
+// -------------------------------------------------------------
+async function initTimerStyle() {
+  const data = await chrome.storage.local.get("timerStyle");
+  const savedStyle = data.timerStyle || "ring";
+  applyTimerStyle(savedStyle, false);
+}
+
+function applyTimerStyle(styleName, save = true) {
+  const validStyles = ["ring", "bar", "minimal"];
+  if (!validStyles.includes(styleName)) styleName = "ring";
+  currentTimerStyle = styleName;
+
+  if (timerCardManual) {
+    timerCardManual.setAttribute("data-timer-style", styleName);
+  }
+  if (timerCardPomo) {
+    timerCardPomo.setAttribute("data-timer-style", styleName);
+  }
+
+  const choiceBtns = document.querySelectorAll(".style-choice-btn");
+  choiceBtns.forEach((btn) => {
+    const isSelected = btn.getAttribute("data-style") === styleName;
+    btn.classList.toggle("active", isSelected);
+    btn.setAttribute("aria-checked", isSelected ? "true" : "false");
+  });
+
+  if (save) {
+    chrome.storage.local.set({ timerStyle: styleName });
+  }
+}
+
+function setupTimerStyleControls() {
+  // Selector buttons in Settings Modal
+  const choiceBtns = document.querySelectorAll(".style-choice-btn");
+  choiceBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const styleName = btn.getAttribute("data-style");
+      applyTimerStyle(styleName, true);
+    });
+  });
+
+  // Cycle button on Active Cards
+  const STYLES = ["ring", "bar", "minimal"];
+  function cycleTimerStyle() {
+    const currentIndex = STYLES.indexOf(currentTimerStyle);
+    const nextIndex = (currentIndex + 1) % STYLES.length;
+    applyTimerStyle(STYLES[nextIndex], true);
+  }
+
+  if (toggleStyleBtnManual) {
+    toggleStyleBtnManual.addEventListener("click", cycleTimerStyle);
+  }
+  if (toggleStyleBtnPomo) {
+    toggleStyleBtnPomo.addEventListener("click", cycleTimerStyle);
+  }
+}
+
+// -------------------------------------------------------------
 // 4. Preset Durasi & Stepper (Mode 1)
 // -------------------------------------------------------------
 function setupPresets() {
@@ -901,6 +992,10 @@ function showActiveCountdownView(timer) {
   setupView.classList.add("hidden");
   activeView.classList.remove("hidden");
 
+  if (activeTimerDomain) {
+    activeTimerDomain.textContent = currentDomain ? `● ${currentDomain}` : "";
+  }
+
   const finishDate = new Date(timer.endTime);
   const finishHours = String(finishDate.getHours()).padStart(2, "0");
   const finishMinutes = String(finishDate.getMinutes()).padStart(2, "0");
@@ -916,6 +1011,7 @@ function showActiveCountdownView(timer) {
       clearInterval(countdownInterval);
       countdownDisplay.textContent = "00:00";
       timerFillBar.style.width = "0%";
+      if (timerRingFill) timerRingFill.style.strokeDashoffset = "427.26px";
       refreshUI();
       return;
     }
@@ -928,6 +1024,18 @@ function showActiveCountdownView(timer) {
     const fraction = Math.max(0, Math.min(1, remainingMs / totalDurationMs));
     const percent = fraction * 100;
     timerFillBar.style.width = `${percent}%`;
+
+    // Update Ring Stroke
+    if (timerRingFill) {
+      const circumference = 427.26;
+      const offset = circumference * (1 - fraction);
+      timerRingFill.style.strokeDashoffset = `${offset}px`;
+      if (percent <= 20) {
+        timerRingFill.classList.add("danger");
+      } else {
+        timerRingFill.classList.remove("danger");
+      }
+    }
 
     if (percent <= 20) {
       timerFillBar.classList.add("danger");
@@ -1172,11 +1280,18 @@ async function renderPomodoro() {
   const minutes = String(finishDate.getMinutes()).padStart(2, "0");
   pomoTargetText.textContent = `${t("targetFinished")} ${hours}:${minutes}`;
 
-  // Progress bar
+  // Progress bar & Ring
   const totalDurationMs = (session.endTime - session.startTime) || 1;
   const elapsedMs = Math.max(0, now - session.startTime);
-  const pct = Math.max(0, Math.min(100, (1 - elapsedMs / totalDurationMs) * 100));
+  const fraction = Math.max(0, Math.min(1, 1 - elapsedMs / totalDurationMs));
+  const pct = fraction * 100;
   pomoTimerFillBar.style.width = `${pct}%`;
+
+  if (pomoRingFill) {
+    const circumference = 427.26;
+    const offset = circumference * (1 - fraction);
+    pomoRingFill.style.strokeDashoffset = `${offset}px`;
+  }
 
   const totalCycles = session.totalCycles || 4;
   pomoActiveCycleText.textContent = `${t("cycleLabel")} ${session.cycle}/${totalCycles}`;
@@ -1186,11 +1301,13 @@ async function renderPomodoro() {
     pomoPhaseBadge.textContent = t("pomoFocusPhase");
     skipPomoPhaseBtn.textContent = t("pomoSkipPhase");
     pomoTimerFillBar.style.backgroundColor = "var(--fill-bar)";
+    if (pomoRingFill) pomoRingFill.style.stroke = "var(--fill-bar)";
   } else {
     pomoPhaseBadge.className = "status-tag warning";
     pomoPhaseBadge.textContent = t("pomoBreakPhase");
     skipPomoPhaseBtn.textContent = t("pomoSkipBreak");
     pomoTimerFillBar.style.backgroundColor = "var(--success-text)";
+    if (pomoRingFill) pomoRingFill.style.stroke = "var(--success-text)";
   }
 }
 
