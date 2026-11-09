@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Zentime — Chrome Web Store Promotional Assets Preview &amp; Exporter</title>
+  <title>Zentime — Chrome Web Store Promotional Assets</title>
   <style>
     :root {
       --bg: #090D16;
@@ -39,7 +39,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 36px;
+      margin-bottom: 24px;
       padding-bottom: 24px;
       border-bottom: 1px solid var(--card-border);
       flex-wrap: wrap;
@@ -72,6 +72,13 @@
       letter-spacing: 0.5px;
     }
 
+    .header-actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
     .btn-all {
       background: var(--primary);
       color: #fff;
@@ -85,11 +92,34 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      text-decoration: none;
     }
 
     .btn-all:hover {
       background: var(--primary-hover);
       transform: translateY(-1px);
+    }
+
+    .banner-info {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 16px 20px;
+      border-radius: 14px;
+      margin-bottom: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .banner-info-text {
+      font-size: 14px;
+      color: #D1FAE5;
+    }
+
+    .banner-info-text strong {
+      color: #6EE7B7;
     }
 
     .section-title {
@@ -147,20 +177,23 @@
       background: rgba(255, 255, 255, 0.08);
       border: 1px solid rgba(255, 255, 255, 0.12);
       color: var(--text);
-      padding: 8px 14px;
+      padding: 8px 16px;
       border-radius: 10px;
       font-size: 13px;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.2s;
-      display: flex;
+      display: inline-flex;
       align-items: center;
       gap: 6px;
+      text-decoration: none;
     }
 
     .btn-export:hover {
-      background: rgba(255, 255, 255, 0.16);
-      border-color: rgba(255, 255, 255, 0.25);
+      background: rgba(255, 255, 255, 0.18);
+      border-color: rgba(255, 255, 255, 0.3);
+      color: #FFFFFF;
+      transform: translateY(-1px);
     }
 
     .preview-container {
@@ -196,12 +229,21 @@
           🌸 Zentime Store Assets
           <span class="badge-cws">CHROME WEB STORE</span>
         </h1>
-        <p>Production-ready promotional graphics and high-resolution screenshot showcases (SVG &amp; PNG Exporter).</p>
+        <p>Production-ready promotional graphics and high-resolution screenshot showcases.</p>
       </div>
-      <button class="btn-all" onclick="exportAllPNGs()">
-        ⬇️ Download All PNGs (ZIP / Bundle)
-      </button>
+      <div class="header-actions">
+        <button class="btn-all" onclick="exportAllPNGs()">
+          ⬇️ Download All PNGs (6 Files)
+        </button>
+      </div>
     </header>
+
+    <!-- INFO BANNER -->
+    <div class="banner-info">
+      <div class="banner-info-text">
+        ✨ <strong>File PNG Siap Pakai Sudah Tersedia:</strong> Seluruh 6 aset grafis dalam resolusi presisi Chrome Web Store sudah dibuatkan langsung di folder <code>store-assets/</code>. Anda dapat mengunduh via tombol di bawah atau langsung mengambil file <code>.png</code> dari foldernya!
+      </div>
+    </div>
 
     <!-- SECTION 1: PROMOTIONAL TILES -->
     <h2 class="section-title">🏷️ Promotional Store Tiles</h2>
@@ -214,12 +256,12 @@
             <h3>Small Promo Tile</h3>
             <div class="asset-meta">Required for CWS Category &amp; Search listing • 440 × 280 px</div>
           </div>
-          <button class="btn-export" onclick="exportSinglePNG('promoSmallImg', 'zentime-promo-small-440x280.png', 440, 280)">
-            ⬇️ Save PNG
-          </button>
+          <a class="btn-export" href="promo-small-440x280.png" download="zentime-promo-small-440x280.png">
+            ⬇️ Save PNG (440x280)
+          </a>
         </div>
         <div class="preview-container">
-          <img id="promoSmallImg" src="promo-small-440x280.svg" alt="Small Promo Tile 440x280">
+          <img id="promoSmallImg" src="promo-small-440x280.png" alt="Small Promo Tile 440x280">
         </div>
       </div>
 
@@ -230,12 +272,12 @@
             <h3>Marquee Hero Tile</h3>
             <div class="asset-meta">Featured placement carousel header • 1400 × 560 px</div>
           </div>
-          <button class="btn-export" onclick="exportSinglePNG('marqueeImg', 'zentime-marquee-1400x560.png', 1400, 560)">
-            ⬇️ Save PNG
-          </button>
+          <a class="btn-export" href="marquee-1400x560.png" download="zentime-marquee-1400x560.png">
+            ⬇️ Save PNG (1400x560)
+          </a>
         </div>
         <div class="preview-container">
-          <img id="marqueeImg" src="marquee-1400x560.svg" alt="Marquee Hero Tile 1400x560">
+          <img id="marqueeImg" src="marquee-1400x560.png" alt="Marquee Hero Tile 1400x560">
         </div>
       </div>
 
@@ -252,12 +294,12 @@
             <h3>Screenshot 1: Focus Timer &amp; Pomodoro Flow</h3>
             <div class="asset-meta">Open-ended count-up, 25m cycle ring, acoustic chimes • 1280 × 800 px</div>
           </div>
-          <button class="btn-export" onclick="exportSinglePNG('screen1Img', 'zentime-screenshot-1-timer.png', 1280, 800)">
-            ⬇️ Save PNG
-          </button>
+          <a class="btn-export" href="screenshot-1-timer.png" download="zentime-screenshot-1-timer.png">
+            ⬇️ Save PNG (1280x800)
+          </a>
         </div>
         <div class="preview-container">
-          <img id="screen1Img" src="screenshot-1-timer.svg" alt="Screenshot 1: Focus Timer & Pomodoro">
+          <img id="screen1Img" src="screenshot-1-timer.png" alt="Screenshot 1: Focus Timer & Pomodoro">
         </div>
       </div>
 
@@ -268,12 +310,12 @@
             <h3>Screenshot 2: Mindful Interstitial Pause</h3>
             <div class="asset-meta">Full-page mindful barrier, breathing lotus, +5m snooze • 1280 × 800 px</div>
           </div>
-          <button class="btn-export" onclick="exportSinglePNG('screen2Img', 'zentime-screenshot-2-blocker.png', 1280, 800)">
-            ⬇️ Save PNG
-          </button>
+          <a class="btn-export" href="screenshot-2-blocker.png" download="zentime-screenshot-2-blocker.png">
+            ⬇️ Save PNG (1280x800)
+          </a>
         </div>
         <div class="preview-container">
-          <img id="screen2Img" src="screenshot-2-blocker.svg" alt="Screenshot 2: Mindful Interstitial Blocker">
+          <img id="screen2Img" src="screenshot-2-blocker.png" alt="Screenshot 2: Mindful Interstitial Blocker">
         </div>
       </div>
 
@@ -284,12 +326,12 @@
             <h3>Screenshot 3: 7-Day Screen Time Insights</h3>
             <div class="asset-meta">Pure CSS bar chart, day drilldown, top distracting domains • 1280 × 800 px</div>
           </div>
-          <button class="btn-export" onclick="exportSinglePNG('screen3Img', 'zentime-screenshot-3-insights.png', 1280, 800)">
-            ⬇️ Save PNG
-          </button>
+          <a class="btn-export" href="screenshot-3-insights.png" download="zentime-screenshot-3-insights.png">
+            ⬇️ Save PNG (1280x800)
+          </a>
         </div>
         <div class="preview-container">
-          <img id="screen3Img" src="screenshot-3-insights.svg" alt="Screenshot 3: 7-Day Insights">
+          <img id="screen3Img" src="screenshot-3-insights.png" alt="Screenshot 3: 7-Day Insights">
         </div>
       </div>
 
@@ -300,12 +342,12 @@
             <h3>Screenshot 4: Power Shortcuts &amp; Dark/Light Mode</h3>
             <div class="asset-meta">Alt+Shift+Z, sound switches, Cupertino continuous curvature • 1280 × 800 px</div>
           </div>
-          <button class="btn-export" onclick="exportSinglePNG('screen4Img', 'zentime-screenshot-4-settings.png', 1280, 800)">
-            ⬇️ Save PNG
-          </button>
+          <a class="btn-export" href="screenshot-4-settings.png" download="zentime-screenshot-4-settings.png">
+            ⬇️ Save PNG (1280x800)
+          </a>
         </div>
         <div class="preview-container">
-          <img id="screen4Img" src="screenshot-4-settings.svg" alt="Screenshot 4: Settings & Shortcuts">
+          <img id="screen4Img" src="screenshot-4-settings.png" alt="Screenshot 4: Settings & Shortcuts">
         </div>
       </div>
 
@@ -317,44 +359,28 @@
   </div>
 
   <script>
-    // High-resolution Canvas rasterizer from SVG to PNG
-    function exportSinglePNG(imgId, filename, width, height) {
-      const img = document.getElementById(imgId);
-      const canvas = document.createElement("canvas");
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext("2d");
-
-      // Draw SVG onto canvas
-      const renderImg = new Image();
-      renderImg.crossOrigin = "anonymous";
-      renderImg.onload = () => {
-        ctx.drawImage(renderImg, 0, 0, width, height);
-        canvas.toBlob((blob) => {
-          const a = document.createElement("a");
-          a.download = filename;
-          a.href = URL.createObjectURL(blob);
-          a.click();
-          URL.revokeObjectURL(a.href);
-        }, "image/png");
-      };
-      renderImg.src = img.src;
+    function downloadFile(url, filename) {
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
     }
 
     async function exportAllPNGs() {
-      const items = [
-        { id: "promoSmallImg", name: "zentime-promo-small-440x280.png", w: 440, h: 280 },
-        { id: "marqueeImg", name: "zentime-marquee-1400x560.png", w: 1400, h: 560 },
-        { id: "screen1Img", name: "zentime-screenshot-1-timer.png", w: 1280, h: 800 },
-        { id: "screen2Img", name: "zentime-screenshot-2-blocker.png", w: 1280, h: 800 },
-        { id: "screen3Img", name: "zentime-screenshot-3-insights.png", w: 1280, h: 800 },
-        { id: "screen4Img", name: "zentime-screenshot-4-settings.png", w: 1280, h: 800 }
+      const files = [
+        { url: "promo-small-440x280.png", name: "zentime-promo-small-440x280.png" },
+        { url: "marquee-1400x560.png", name: "zentime-marquee-1400x560.png" },
+        { url: "screenshot-1-timer.png", name: "zentime-screenshot-1-timer.png" },
+        { url: "screenshot-2-blocker.png", name: "zentime-screenshot-2-blocker.png" },
+        { url: "screenshot-3-insights.png", name: "zentime-screenshot-3-insights.png" },
+        { url: "screenshot-4-settings.png", name: "zentime-screenshot-4-settings.png" }
       ];
 
-      for (let i = 0; i < items.length; i++) {
-        const item = items[i];
-        exportSinglePNG(item.id, item.name, item.w, item.h);
-        await new Promise(r => setTimeout(r, 400));
+      for (let i = 0; i < files.length; i++) {
+        downloadFile(files[i].url, files[i].name);
+        await new Promise(r => setTimeout(r, 300));
       }
     }
   </script>
