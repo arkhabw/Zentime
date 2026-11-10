@@ -313,6 +313,7 @@ function startRealtimeLoop() {
 }
 
 startRealtimeLoop();
+setupContextMenus();
 
 // Lifecycle Handlers: Cleanup retensi data saat ekstensi diaktifkan atau browser dibuka
 chrome.runtime.onInstalled.addListener(async () => {
@@ -754,26 +755,62 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 // -------------------------------------------------------------
 // 9. Context Menus & Global Keyboard Shortcuts (Phase 3)
 // -------------------------------------------------------------
-function setupContextMenus() {
+async function setupContextMenus(langOverride = null) {
   if (!chrome.contextMenus) return;
+
+  let lang = langOverride;
+  if (!lang) {
+    try {
+      const data = await chrome.storage.local.get("preferredLanguage");
+      lang = data.preferredLanguage || "id";
+    } catch {
+      lang = "id";
+    }
+  }
+
+  const titles = {
+    id: {
+      quickPomo: "🍅 Mulai Fokus 25m di Website Ini",
+      openLimits: "🛑 Pasang Batas Harian...",
+      openInsights: "📊 Buka Wawasan Layar (7 Hari)",
+    },
+    en: {
+      quickPomo: "🍅 Start 25m Focus on this Website",
+      openLimits: "🛑 Set Daily Limit...",
+      openInsights: "📊 View Screen Time Insights (7 Days)",
+    },
+  };
+
+  const dict = titles[lang] || titles.id;
+
   chrome.contextMenus.removeAll(() => {
     chrome.contextMenus.create({
       id: "zentime_quick_pomo",
-      title: "🍅 Mulai Fokus 25m di Website Ini",
+      title: dict.quickPomo,
       contexts: ["page"],
     });
     chrome.contextMenus.create({
       id: "zentime_open_limits",
-      title: "🛑 Pasang Batas Harian...",
+      title: dict.openLimits,
       contexts: ["page"],
     });
     chrome.contextMenus.create({
       id: "zentime_open_insights",
-      title: "📊 Buka Wawasan Layar (7 Hari)",
+      title: dict.openInsights,
       contexts: ["page", "action"],
     });
   });
 }
+
+// Pantau perubahan bahasa untuk langsung memperbarui teks Context Menu secara dinamis
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (areaName === "local" && changes.preferredLanguage) {
+    const newLang = changes.preferredLanguage.newValue;
+    if (newLang) {
+      setupContextMenus(newLang);
+    }
+  }
+});
 
 // Mulai Pomodoro Cepat dari Shortcut atau Context Menu
 async function startQuickPomodoro(domain, originalUrl = "") {
