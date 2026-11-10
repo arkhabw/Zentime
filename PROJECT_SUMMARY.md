@@ -112,11 +112,19 @@ web-timer-extension/
 * **Zero External Audio Assets**: Generates harmonic bell frequencies programmatically using layered oscillators (`sine` + `triangle` with exponential gain decay).
 * **Offscreen Document Integration**: Conforms to Manifest V3 background audio policies via `audio.html`.
 
-### 3.6. Global Keyboard Shortcuts & Context Menus
+### 3.6. Global Keyboard Shortcuts & Dynamic Localized Context Menus
 * `Alt+Shift+Z`: Instant toggle for Zentime Focus Popup.
 * `Alt+Shift+S`: Start 25-minute Pomodoro session on active website.
 * `Alt+Shift+B`: Trigger Mindful Interstitial Pause immediately.
-* Context Menus: Right-click any webpage to quickly inspect domain limits.
+* **Dynamic Localized Context Menus (i18n)**: Right-click context menu titles dynamically synchronize with the user's active language selection (`preferredLanguage`: ID / EN) via `chrome.storage.onChanged`:
+  * **Indonesian (ID)**:
+    * 🍅 *Mulai Fokus 25m di Website Ini*
+    * 🛑 *Pasang Batas Harian...*
+    * 📊 *Buka Wawasan Layar (7 Hari)*
+  * **English (EN)**:
+    * 🍅 *Start 25m Focus on this Website*
+    * 🛑 *Set Daily Limit...*
+    * 📊 *View Screen Time Insights (7 Days)*
 
 ---
 
