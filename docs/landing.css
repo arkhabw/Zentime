@@ -54,6 +54,10 @@
 
   --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --t-enter: 0.85s;
+  --t-stagger: 65ms;
+  --rise: 20px;
 
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
   --shadow-md: 0 8px 30px rgba(0, 0, 0, 0.35);
@@ -1962,18 +1966,79 @@ body {
 }
 
 /* -------------------------------------------------------------
-   Scroll Animations
+   Taste-Skill Dynamic Stagger Scroll Architecture
+   Reverse-engineered from tasteskill.dev (Emil Kowalski / Vercel style)
+   Granular micro-stagger, exponential spring curves, and scale reveals
    ------------------------------------------------------------- */
+@media (prefers-reduced-motion: no-preference) {
+  html.enter-ready [data-enter]:not([data-entered]) {
+    opacity: 0;
+    transform: translate3d(0, var(--rise, 20px), 0);
+    pointer-events: none;
+  }
+
+  html.enter-ready [data-enter="scale"]:not([data-entered]) {
+    opacity: 0;
+    transform: translate3d(0, calc(var(--rise, 20px) * 1.4), 0) scale(0.96);
+    pointer-events: none;
+  }
+
+  html.enter-ready [data-enter="fade"]:not([data-entered]) {
+    opacity: 0;
+    transform: none;
+    pointer-events: none;
+  }
+
+  html.enter-ready [data-enter] {
+    transition: opacity var(--t-enter) var(--ease-out-expo),
+                transform var(--t-enter) var(--ease-out-expo);
+    transition-delay: calc(var(--enter-i, 0) * var(--t-stagger));
+    will-change: opacity, transform;
+  }
+}
+
+/* Fallback for legacy .scroll-reveal class */
 .scroll-reveal {
   opacity: 0;
-  transform: translateY(28px);
-  transition: opacity 0.85s var(--ease-spring), transform 0.85s var(--ease-spring);
+  transform: translateY(20px);
+  transition: opacity var(--t-enter) var(--ease-out-expo),
+              transform var(--t-enter) var(--ease-out-expo);
   will-change: opacity, transform;
 }
 
 .scroll-reveal.is-revealed {
   opacity: 1;
   transform: translateY(0);
+}
+
+/* Instant response for user interactions without lingering stagger delay */
+.bento-card:hover,
+.step-card:hover,
+.widget-frame:hover,
+.btn-primary:hover,
+.btn-secondary:hover,
+.btn-nav-download:hover,
+.btn-trigger-simulator:hover,
+.chime-btn:hover {
+  transition-delay: 0s !important;
+}
+
+/* Accessibility: respect user prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  html.enter-ready [data-enter]:not([data-entered]) {
+    opacity: 0;
+  }
+
+  html.enter-ready [data-enter] {
+    transition: opacity 0.3s ease;
+    transition-delay: 0s !important;
+  }
+
+  .scroll-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
 }
 
 /* -------------------------------------------------------------

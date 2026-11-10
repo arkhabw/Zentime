@@ -5,8 +5,44 @@
   "use strict";
 
   // -------------------------------------------------------------
-  // 1. Welcome Entrance Sequence
+  // 1. Welcome Entrance Sequence & Hero Choreography
   // -------------------------------------------------------------
+  document.documentElement.classList.add("enter-ready");
+
+  const heroSection = document.querySelector(".hero-section");
+  const navbar = document.querySelector(".navbar");
+
+  function enterElement(el) {
+    if (!el || el.hasAttribute("data-entered")) return;
+    el.setAttribute("data-entered", "true");
+    if (el.classList && el.classList.contains("scroll-reveal")) {
+      el.classList.add("is-revealed");
+    }
+  }
+
+  function enterElementGroup(container) {
+    if (!container) return;
+    enterElement(container);
+    const enterItems = container.querySelectorAll("[data-enter]");
+    enterItems.forEach((item, idx) => {
+      if (!item.style.getPropertyValue("--enter-i")) {
+        item.style.setProperty("--enter-i", idx);
+      }
+      enterElement(item);
+    });
+    const nestedReveals = container.querySelectorAll(".scroll-reveal");
+    nestedReveals.forEach((r) => r.classList.add("is-revealed"));
+  }
+
+  function revealHeroAndNav() {
+    if (navbar) {
+      enterElement(navbar);
+    }
+    if (heroSection) {
+      enterElementGroup(heroSection);
+    }
+  }
+
   const welcomeOverlay = document.getElementById("welcomeOverlay");
   if (welcomeOverlay) {
     let dismissed = false;
@@ -14,6 +50,7 @@
       if (dismissed) return;
       dismissed = true;
       welcomeOverlay.classList.add("is-hidden");
+      revealHeroAndNav();
       setTimeout(() => {
         welcomeOverlay.remove();
       }, 750);
@@ -31,6 +68,9 @@
       clearTimeout(welcomeTimer);
       dismissWelcome();
     }, { once: true });
+  } else {
+    // If no welcome overlay present, reveal immediately
+    revealHeroAndNav();
   }
 
   // -------------------------------------------------------------
@@ -70,22 +110,29 @@
   }
 
   // -------------------------------------------------------------
-  // 3. Scroll Reveal Animations (Apple-style Stagger)
+  // 3. Taste-Skill Dynamic Stagger Scroll Engine
   // -------------------------------------------------------------
-  const revealElements = document.querySelectorAll(".scroll-reveal");
   if ("IntersectionObserver" in window) {
-    const revealObserver = new IntersectionObserver((entries, observer) => {
+    const scrollObserver = new IntersectionObserver((entries, observer) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
-          entry.target.classList.add("is-revealed");
+          enterElementGroup(entry.target);
           observer.unobserve(entry.target);
         }
       });
-    }, { threshold: 0.12 });
+    }, {
+      rootMargin: "0px 0px -45px 0px",
+      threshold: 0.1
+    });
 
-    revealElements.forEach((el) => revealObserver.observe(el));
+    // Observe section headers, cards, tables, and footers individually for high-fidelity scroll choreography
+    const observeTargets = document.querySelectorAll(
+      ".section-header, .bento-card, .steps-grid, .step-card, .privacy-table-card, .footer, .scroll-reveal"
+    );
+    observeTargets.forEach((el) => scrollObserver.observe(el));
   } else {
-    revealElements.forEach((el) => el.classList.add("is-revealed"));
+    document.querySelectorAll("[data-enter]").forEach((el) => el.setAttribute("data-entered", "true"));
+    document.querySelectorAll(".scroll-reveal").forEach((el) => el.classList.add("is-revealed"));
   }
 
   // -------------------------------------------------------------
