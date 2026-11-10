@@ -1715,10 +1715,16 @@ function renderMode4Insights() {
     if (insightsSubtext) insightsSubtext.textContent = selectedDay.isToday ? `${dateHuman} • ${t("todayLabel")}` : dateHuman;
 
     if (insightsMetric2Label) insightsMetric2Label.textContent = t("shareOfWeek");
-    if (insightsDailyAvg) insightsDailyAvg.textContent = `${shareOfWeek}%`;
+    if (insightsDailyAvg) {
+      insightsDailyAvg.textContent = `${shareOfWeek}%`;
+      insightsDailyAvg.setAttribute("title", `${shareOfWeek}%`);
+    }
 
     if (insightsMetric3Label) insightsMetric3Label.textContent = t("topSiteDay");
-    if (insightsPeakDay) insightsPeakDay.textContent = dayTopSite;
+    if (insightsPeakDay) {
+      insightsPeakDay.textContent = dayTopSite;
+      insightsPeakDay.setAttribute("title", dayTopSite);
+    }
 
     if (insightsChartBadge) {
       insightsChartBadge.textContent = t("backToWeekBtn");
@@ -1737,15 +1743,21 @@ function renderMode4Insights() {
     if (insightsSubtext) insightsSubtext.textContent = t("monitoredUsageOnly");
 
     if (insightsMetric2Label) insightsMetric2Label.textContent = t("dailyAverage");
-    if (insightsDailyAvg) insightsDailyAvg.textContent = `${formatHoursMinutes(dailyAverageSeconds)}${t("perDaySuffix")}`;
+    if (insightsDailyAvg) {
+      insightsDailyAvg.innerHTML = `${formatHoursMinutes(dailyAverageSeconds)}<span class="metric-unit">${t("perDaySuffix")}</span>`;
+      insightsDailyAvg.setAttribute("title", `${formatHoursMinutes(dailyAverageSeconds)}${t("perDaySuffix")}`);
+    }
 
     if (insightsMetric3Label) insightsMetric3Label.textContent = t("mostActiveDay");
     if (insightsPeakDay) {
       if (peakDay && peakDay.seconds > 0) {
         const dayName = t("dayNames")[peakDay.dayOfWeek] || "";
-        insightsPeakDay.textContent = `${dayName} (${formatHoursMinutes(peakDay.seconds)})`;
+        const peakText = `${dayName} (${formatHoursMinutes(peakDay.seconds)})`;
+        insightsPeakDay.textContent = peakText;
+        insightsPeakDay.setAttribute("title", peakText);
       } else {
         insightsPeakDay.textContent = "-";
+        insightsPeakDay.removeAttribute("title");
       }
     }
 
