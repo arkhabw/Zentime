@@ -11,6 +11,7 @@
 
   const heroSection = document.querySelector(".hero-section");
   const navbar = document.querySelector(".navbar");
+  let scrollObserver = null;
 
   function enterElement(el) {
     if (!el || el.hasAttribute("data-entered")) return;
@@ -34,12 +35,39 @@
     nestedReveals.forEach((r) => r.classList.add("is-revealed"));
   }
 
+  function resetElement(el) {
+    if (!el || !el.hasAttribute("data-entered")) return;
+    // Instant reset off-screen without backwards transition lag
+    el.style.transition = "none";
+    el.removeAttribute("data-entered");
+    if (el.classList && el.classList.contains("scroll-reveal")) {
+      el.classList.remove("is-revealed");
+    }
+    void el.offsetHeight;
+    el.style.transition = "";
+  }
+
+  function resetElementGroup(container) {
+    if (!container) return;
+    resetElement(container);
+    const enterItems = container.querySelectorAll("[data-enter]");
+    enterItems.forEach((item) => {
+      resetElement(item);
+    });
+    const nestedReveals = container.querySelectorAll(".scroll-reveal");
+    nestedReveals.forEach((r) => r.classList.remove("is-revealed"));
+  }
+
   function revealHeroAndNav() {
     if (navbar) {
       enterElement(navbar);
     }
     if (heroSection) {
       enterElementGroup(heroSection);
+    }
+    if (scrollObserver) {
+      const heroTargets = document.querySelectorAll(".hero-content, .widget-container");
+      heroTargets.forEach((el) => scrollObserver.observe(el));
     }
   }
 
@@ -110,26 +138,33 @@
   }
 
   // -------------------------------------------------------------
-  // 3. Taste-Skill Dynamic Stagger Scroll Engine
+  // 3. Taste-Skill Dynamic Stagger Scroll Engine (Bi-directional)
   // -------------------------------------------------------------
   if ("IntersectionObserver" in window) {
-    const scrollObserver = new IntersectionObserver((entries, observer) => {
+    scrollObserver = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
           enterElementGroup(entry.target);
-          observer.unobserve(entry.target);
+        } else {
+          resetElementGroup(entry.target);
         }
       });
     }, {
-      rootMargin: "0px 0px -45px 0px",
-      threshold: 0.1
+      rootMargin: "0px 0px -40px 0px",
+      threshold: 0.08
     });
 
-    // Observe section headers, cards, tables, and footers individually for high-fidelity scroll choreography
+    // Observe section headers, cards, tables, step cards, and footer
     const observeTargets = document.querySelectorAll(
-      ".section-header, .bento-card, .steps-grid, .step-card, .privacy-table-card, .footer, .scroll-reveal"
+      ".section-header, .bento-card, .step-card, .privacy-table-card, .footer, .scroll-reveal"
     );
     observeTargets.forEach((el) => scrollObserver.observe(el));
+
+    // If welcome overlay has already dismissed or is not present, observe hero targets too
+    if (!welcomeOverlay) {
+      const heroTargets = document.querySelectorAll(".hero-content, .widget-container");
+      heroTargets.forEach((el) => scrollObserver.observe(el));
+    }
   } else {
     document.querySelectorAll("[data-enter]").forEach((el) => el.setAttribute("data-entered", "true"));
     document.querySelectorAll(".scroll-reveal").forEach((el) => el.classList.add("is-revealed"));
