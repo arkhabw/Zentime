@@ -408,7 +408,7 @@ body {
    ------------------------------------------------------------- */
 .navbar-wrapper {
   position: sticky;
-  top: 16px;
+  top: max(14px, env(safe-area-inset-top, 14px));
   width: 100%;
   max-width: 1140px;
   margin: 0 auto;
@@ -429,6 +429,7 @@ body {
   padding: 8px 18px;
   box-shadow: var(--shadow-sm);
   transition: border-color 0.2s ease, background 0.2s ease;
+  box-sizing: border-box;
 }
 
 [data-theme="light"] .navbar {
@@ -444,11 +445,13 @@ body {
   font-weight: 700;
   font-size: 17px;
   letter-spacing: -0.02em;
+  flex-shrink: 0;
 }
 
 .nav-logo {
   width: 26px;
   height: 26px;
+  flex-shrink: 0;
 }
 
 .nav-links {
@@ -474,6 +477,7 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-shrink: 0;
 }
 
 .theme-toggle-btn {
@@ -487,6 +491,8 @@ body {
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  flex-shrink: 0;
+  position: relative;
   transition: background 0.15s ease, border-color 0.15s ease;
 }
 
@@ -495,9 +501,35 @@ body {
   border-color: var(--border-strong);
 }
 
+.nav-btn-star {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  border-radius: var(--radius-full);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  white-space: nowrap;
+  flex-shrink: 0;
+  position: relative;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s var(--ease-spring);
+}
+
+.nav-btn-star:hover {
+  background: var(--bg-subtle);
+  border-color: var(--border-strong);
+  transform: translateY(-1px);
+}
+
 .btn-nav-download {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   background: var(--brand);
   color: var(--text-inverse);
@@ -506,6 +538,8 @@ body {
   font-size: 13px;
   font-weight: 600;
   text-decoration: none;
+  white-space: nowrap;
+  flex-shrink: 0;
   transition: transform 0.15s var(--ease-spring), opacity 0.15s ease;
 }
 
@@ -2018,6 +2052,7 @@ body {
 .btn-primary:hover,
 .btn-secondary:hover,
 .btn-nav-download:hover,
+.nav-btn-star:hover,
 .btn-trigger-simulator:hover,
 .chime-btn:hover {
   transition-delay: 0s !important;
@@ -2080,5 +2115,100 @@ body {
 
   .nav-links {
     display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar-wrapper {
+    top: max(12px, env(safe-area-inset-top, 12px));
+    padding: 0 16px;
+  }
+
+  .navbar {
+    padding: 6px 14px;
+  }
+}
+
+@media (max-width: 640px) {
+  .navbar-wrapper {
+    top: max(10px, env(safe-area-inset-top, 10px));
+    padding: 0 12px;
+  }
+
+  .navbar {
+    padding: 5px 8px 5px 12px;
+    height: 46px;
+  }
+
+  .nav-brand {
+    font-size: 15px;
+    gap: 8px;
+  }
+
+  .nav-logo {
+    width: 22px;
+    height: 22px;
+  }
+
+  .nav-actions {
+    gap: 6px;
+  }
+
+  .theme-toggle-btn {
+    width: 34px;
+    height: 34px;
+  }
+
+  .nav-btn-star {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+  }
+
+  .nav-btn-star span {
+    display: none; /* Hide 'Star' label on phone widths to prevent horizontal crowding */
+  }
+
+  /* Expand tap target for small touchscreens */
+  .theme-toggle-btn::after,
+  .nav-btn-star::after {
+    content: "";
+    position: absolute;
+    top: -5px;
+    bottom: -5px;
+    left: -5px;
+    right: -5px;
+  }
+
+  .btn-nav-download {
+    padding: 0 12px;
+    height: 34px;
+    font-size: 12px;
+    box-sizing: border-box;
+  }
+}
+
+@media (max-width: 380px) {
+  .navbar-wrapper {
+    padding: 0 8px;
+  }
+
+  .navbar {
+    padding: 4px 6px 4px 10px;
+    height: 44px;
+  }
+
+  .nav-brand span {
+    font-size: 14px;
+  }
+
+  .nav-btn-star {
+    display: none; /* Ultra-compact screens hide star to give download full priority */
+  }
+
+  .btn-nav-download {
+    padding: 0 10px;
+    font-size: 11px;
+    height: 32px;
   }
 }
